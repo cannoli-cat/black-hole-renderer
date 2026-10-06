@@ -1,6 +1,6 @@
 # Black Hole Renderer
 
-A real-time, ray-marched black hole for Unity URP: gravitational lensing of your skybox, a spinning accretion disk with temperature-based color and relativistic beaming.
+A real-time, ray-marched black hole for Unity URP. Gravitational lensing of your skybox, a spinning accretion disk with temperature-based color and relativistic beaming.
 
 ## Installation
 
@@ -16,7 +16,7 @@ https://github.com/cannoli-cat/black-hole-renderer.git#v1.0.0
 
 1. Add **Black Hole Feature** to your URP renderer (Renderer asset → **Add Renderer Feature**), and assign the `BlackHole` shader and `BlackHole` compute shader from this package.
 2. Add the **Black Hole** component to a GameObject. Its position is the black hole's position.
-3. Use a **cubemap skybox** material in Lighting settings; it is what gets lensed. Without one, the background renders black.
+3. Use a **cubemap skybox** material in Lighting settings. It's what gets lensed. Without one, the background renders black.
 
 Tune the radius, spin, disk size, temperature, beaming and sky intensity on the renderer feature.
 
