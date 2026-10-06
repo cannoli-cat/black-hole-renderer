@@ -2,6 +2,8 @@
 
 A real-time, ray-marched black hole for Unity URP. Gravitational lensing of your skybox, a spinning accretion disk with temperature-based color and relativistic beaming.
 
+![Black hole with a lensed accretion disk in front of the Milky Way](Documentation~/black-hole.gif)
+
 ## Installation
 
 Requires **Unity 6** with **URP** (RenderGraph).
