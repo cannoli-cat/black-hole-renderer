@@ -1,0 +1,26 @@
+#pragma kernel CSMain
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "BlackHoleCommon.hlsl"
+
+RWTexture2D<float4> Result;
+Texture2D<float4> SceneColor;
+Texture2D<float> SceneDepth;
+int ScreenWidth;
+int ScreenHeight;
+
+[numthreads(8, 8, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= (uint)ScreenWidth || id.y >= (uint)ScreenHeight) return;
+    
+    if (SceneDepth[id.xy] > 0.0)
+    {
+        Result[id.xy] = SceneColor[id.xy];
+        return;
+    }
+
+    float2 ndc = ((float2(id.xy) + 0.5) / float2(ScreenWidth, ScreenHeight)) * 2.0 - 1.0;
+    float3 rd = BH_RayDir(ndc);
+    Result[id.xy] = float4(BH_Render(_CamPos, rd), 1.0);
+}

@@ -1,0 +1,3 @@
+# Unity creates .meta files for package files; these must be committed.
+.DS_Store
+Thumbs.db
