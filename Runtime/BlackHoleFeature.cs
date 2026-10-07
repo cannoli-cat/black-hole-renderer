@@ -34,8 +34,8 @@ namespace CannoliCat.Space {
         
         public float diskDensity = 1.0f;
         
-        [Range(1f, 6f)]
-        public float beamingPower = 4.0f;
+        [Tooltip("Brightness multiplier for the disk only. Doesn't affect the sky.")] [Range(0f, 20f)]
+        public float diskExposure = 1.0f;
 
         [Header("Turbulence (MRI)")]
         [Range(0.1f, 5f)]
@@ -50,6 +50,7 @@ namespace CannoliCat.Space {
         public Color diskColorTint = Color.white;
 
         private Material material;
+        private Texture2D blackbodyLut;
         private BlackHolePass fragmentPass;
         private BlackHoleComputePass computePass;
 
@@ -59,6 +60,11 @@ namespace CannoliCat.Space {
         public override void Create() {
             fragmentPass = null;
             computePass = null;
+
+            if (blackbodyLut == null) {
+                blackbodyLut = BlackbodyLUT.Build();
+                blackbodyLut.hideFlags = HideFlags.HideAndDontSave;
+            }
 
             if (shader != null) {
                 material = CoreUtils.CreateEngineMaterial(shader);
@@ -73,6 +79,8 @@ namespace CannoliCat.Space {
         protected override void Dispose(bool disposing) {
             CoreUtils.Destroy(material);
             material = null;
+            CoreUtils.Destroy(blackbodyLut);
+            blackbodyLut = null;
         }
 
         private static readonly int SkyboxTexId = Shader.PropertyToID("_Tex");
@@ -120,7 +128,7 @@ namespace CannoliCat.Space {
             var cam = renderingData.cameraData.camera;
 
             if (Time.frameCount != lastTimeFrame) {
-                simulatedTime += Application.isPlaying ? Time.deltaTime : 0.016f;
+                simulatedTime += (Application.isPlaying ? Time.deltaTime : 0.016f) * evolutionSpeed;
                 lastTimeFrame = Time.frameCount;
             }
 
@@ -146,12 +154,11 @@ namespace CannoliCat.Space {
                 time = simulatedTime,
                 noiseScale = noiseScale,
                 diskDensity = diskDensity,
-                evolutionSpeed = evolutionSpeed,
                 twistIntensity = twistIntensity,
                 tempMultiplier = maxTemperature,
                 diskThickness = diskThickness,
                 diskOuterRadius = diskOuterRadius,
-                beamingPower = beamingPower,
+                diskExposure = diskExposure,
 
                 escapeRadius = Mathf.Max(80f,
                     Vector3.Distance(camPos, bhPos) + diskOuterRadius * schwarzschildRadius * 2f),
@@ -162,7 +169,8 @@ namespace CannoliCat.Space {
 #endif
                 skyRotation = GetSkyboxRotation(),
                 baseColor = diskColorTint,
-                skyTexture = GetSkyboxCubemap()
+                skyTexture = GetSkyboxCubemap(),
+                blackbodyLut = blackbodyLut
             };
 
             if (useCompute) {

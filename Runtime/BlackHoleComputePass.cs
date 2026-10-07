@@ -34,6 +34,8 @@ namespace CannoliCat.Space {
             
             if (settings.skyTexture != null)
                 cs.SetTexture(0, BlackHoleParams.SkyTex, settings.skyTexture);
+            if (settings.blackbodyLut != null)
+                cs.SetTexture(0, BlackHoleParams.BlackbodyLutTex, settings.blackbodyLut);
 
             var desc = new TextureDesc(cam.pixelWidth, cam.pixelHeight) {
                 name = "BlackHoleColor",

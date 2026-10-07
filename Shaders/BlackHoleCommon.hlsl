@@ -7,8 +7,13 @@
     #define MAX_STEPS 700
 #endif
 
+static const float WIND_PERIOD = 40.0;
+
 TEXTURECUBE(_SkyTex);
+TEXTURE2D(_BlackbodyLUT);
 SamplerState sampler_linear_clamp;
+
+float2 _BlackbodyRange; // (min kelvin, max kelvin) of the LUT, log-spaced
 
 float3 _CamPos;
 float3 _CamForward;
@@ -22,12 +27,11 @@ float _Spin;
 float _BHTime;
 float _NoiseScale;
 float _DiskDensity;
-float _EvolutionSpeed;
 float _TwistIntensity;
 float _TempMultiplier;
 float _DiskThickness;
 float _DiskOuterRadius;
-float _BeamingPower;
+float _DiskExposure;
 float _EscapeRadius;
 float _SkyIntensity;
 float _SkyRotation;
@@ -75,17 +79,16 @@ float fbm(float3 p)
     return f;
 }
 
-float3 kelvin_to_rgb(float kelvin)
+float disk_noise(float2 xz, float pos_y, float angle, float seed)
 {
-    if (kelvin < 400.0) return float3(0.0, 0.0, 0.0);
-    float teff = (kelvin - 6500.0) / (6500.0 * kelvin * 2.2);
-    float3 col;
-    col.r = exp(2.05539304e4 * teff);
-    col.g = exp(2.63463675e4 * teff);
-    col.b = exp(3.30145739e4 * teff);
-    float norm = 1.0 / max(max(1.5 * col.r, col.g), col.b);
-    if (kelvin < 1000.0) norm *= (kelvin - 400.0) / 600.0;
-    return col * norm;
+    float s, c;
+    sincos(angle, s, c);
+    
+    float2 spiral_xz = float2(xz.x * c - xz.y * s, xz.x * s + xz.y * c);
+    float3 noisePos = float3(spiral_xz.x, pos_y * 10.0, spiral_xz.y) * _NoiseScale;
+    noisePos.y += seed * 7.31;
+    
+    return fbm(noisePos) * 0.5 + 0.5;
 }
 
 float3 BH_RayDir(float2 ndc)
@@ -113,6 +116,18 @@ float3 BH_Render(float3 pos, float3 vel)
     float r_isco = M * (3.0 + z2 - sqrt(max((3.0 - z1) * (3.0 + z1 + 2.0 * z2), 0.0)));
 
     float outerR = _DiskOuterRadius * _Rs;
+    float b = cross(pos - _BlackHolePos, vel).y;
+    
+    float cycle = _BHTime / WIND_PERIOD;
+    
+    float phase_a = frac(cycle);
+    float phase_b = frac(cycle + 0.5);
+    
+    float weight_a = 1 - abs(2.0 * phase_a - 1.0);
+    float weight_b = 1.0 - weight_a;
+    
+    float seed_a = floor(cycle) * 2.0;
+    float seed_b = floor(cycle + 0.5) * 2.0 + 1.0;
 
     [loop]
     for (int i = 0; i < MAX_STEPS; i++)
@@ -157,37 +172,32 @@ float3 BH_Render(float3 pos, float3 vel)
             if (vertical > 0.001)
             {
                 float x = saturate((disk_r - r_isco) / (outerR - r_isco));
-                float base_density = smoothstep(0.0, 0.05, x) * smoothstep(1.0, 0.2, x);
-
+                float base_density = smoothstep(1.0, 0.2, x);
+                
+                float r_three_halves = pow(disk_r, 1.5);
+                float omega_k = sqrtM / (r_three_halves + a_phys * sqrtM);
+                
                 float twist = _TwistIntensity * log(max(disk_r, 0.01));
-                float s, c;
-                sincos(twist, s, c);
-                float2 spiral_xz = float2(rd.x * c - rd.z * s, rd.x * s + rd.z * c);
-
-                float drift = _BHTime * _EvolutionSpeed * 2.0;
-                float3 noisePos = float3(spiral_xz.x - drift, pos_y * 10.0, spiral_xz.y - drift) * _NoiseScale;
-                float raw_noise = fbm(noisePos) * 0.5 + 0.5;
+                float layer_a = disk_noise(rd.xz, pos_y, twist - omega_k * phase_a * WIND_PERIOD, seed_a);
+                float layer_b = disk_noise(rd.xz, pos_y, twist - omega_k * phase_b * WIND_PERIOD, seed_b);
+                float raw_noise = layer_a * weight_a + layer_b * weight_b;
+                
                 float cloud_mask = pow(smoothstep(0.2, 0.8, raw_noise), 2.0);
                 float final_density = base_density * cloud_mask;
 
-                float omega_k = sqrtM / (pow(disk_r, 1.5) + a_phys * sqrtM);
-                float v_orb = min(omega_k * disk_r, 0.95);
+                float u_t = (r_three_halves + a_phys * sqrtM) / (pow(disk_r, 0.75) * sqrt(max(r_three_halves - 3.0 * M * sqrt(disk_r) + 2.0 * a_phys * sqrtM, 1e-6)));
+                float g = 1.0 / (u_t * max(1.0 - omega_k * b, 1e-4));
 
-                float2 orbital = normalize(float2(-rd.z, rd.x));
-                float ddot = dot(orbital, normalize(vel.xz));
-                float gamma = 1.0 / sqrt(max(1.0 - v_orb * v_orb, 1e-6));
-                float freq_ratio = 1.0 / (gamma * (1.0 - v_orb * ddot));
-
-                float grav_z = sqrt(max(1.0 - _Rs / disk_r, 0.0));
-
-                float temp_profile = pow(max(r_isco / disk_r, 0.0), 0.75);
+                // Novikov–Thorne profile, normalized so its peak (at r ≈ 1.36 r_isco) is 1
+                float temp_profile = pow(r_isco / disk_r, 0.75) * pow(max(1.0 - sqrt(r_isco / disk_r), 0.0), 0.25) / 0.488;
                 float rest_temp = _TempMultiplier * temp_profile;
-                float obs_temp = rest_temp * freq_ratio * grav_z;
+                float obs_temp = rest_temp * g;
 
-                float3 emission = kelvin_to_rgb(obs_temp) * _BaseColor.rgb;
-
-                float beaming = pow(max(freq_ratio, 0.0), _BeamingPower);
-                emission *= beaming * 5.0;
+                float lut_temp = max(obs_temp, _BlackbodyRange.x);
+                float lut_u = log(lut_temp / _BlackbodyRange.x) / log(_BlackbodyRange.y / _BlackbodyRange.x);
+                float3 emission = SAMPLE_TEXTURE2D_LOD(_BlackbodyLUT, sampler_linear_clamp, float2(lut_u, 0.5), 0).rgb * _BaseColor.rgb;
+                
+                emission *= _DiskExposure;
 
                 float stepAlpha = 1.0 - exp(-(final_density * vertical * _DiskDensity * 10.0) * dt);
                 diskLight += emission * stepAlpha * (1.0 - diskAlpha);
@@ -198,11 +208,15 @@ float3 BH_Render(float3 pos, float3 vel)
     
     float sr, cr;
     sincos(radians(_SkyRotation), sr, cr);
+    
     float3 skyDir = normalize(vel);
     skyDir = float3(cr * skyDir.x + sr * skyDir.z, skyDir.y, -sr * skyDir.x + cr * skyDir.z);
+    
     float3 bg = SAMPLE_TEXTURECUBE_LOD(_SkyTex, sampler_linear_clamp, skyDir, 0).rgb * _SkyIntensity;
     float3 col = hit ? float3(0, 0, 0) : bg;
+    
     col = col * (1.0 - diskAlpha) + diskLight;
+    
     return col;
 }
 

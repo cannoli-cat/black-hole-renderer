@@ -6,11 +6,12 @@ namespace CannoliCat.Space {
         public Vector3 camPos, camForward, camRight, camUp;
         public Vector2 tanHalfFov;
         public Vector3 blackHolePos;
-        public float rs, spin, time, noiseScale, diskDensity, evolutionSpeed, twistIntensity;
-        public float tempMultiplier, diskThickness, diskOuterRadius, beamingPower, escapeRadius, skyIntensity;
+        public float rs, spin, time, noiseScale, diskDensity, twistIntensity;
+        public float tempMultiplier, diskThickness, diskOuterRadius, diskExposure, escapeRadius, skyIntensity;
         public float skyRotation;
         public Color baseColor;
         public Cubemap skyTexture;
+        public Texture2D blackbodyLut;
 
         private static readonly int CamPos = Shader.PropertyToID("_CamPos");
         private static readonly int CamForward = Shader.PropertyToID("_CamForward");
@@ -23,17 +24,21 @@ namespace CannoliCat.Space {
         private static readonly int Time = Shader.PropertyToID("_BHTime");
         private static readonly int NoiseScale = Shader.PropertyToID("_NoiseScale");
         private static readonly int DiskDensity = Shader.PropertyToID("_DiskDensity");
-        private static readonly int EvolutionSpeed = Shader.PropertyToID("_EvolutionSpeed");
         private static readonly int TwistIntensity = Shader.PropertyToID("_TwistIntensity");
         private static readonly int TempMultiplier = Shader.PropertyToID("_TempMultiplier");
         private static readonly int DiskThickness = Shader.PropertyToID("_DiskThickness");
         private static readonly int DiskOuterRadius = Shader.PropertyToID("_DiskOuterRadius");
-        private static readonly int BeamingPower = Shader.PropertyToID("_BeamingPower");
+        private static readonly int DiskExposure = Shader.PropertyToID("_DiskExposure");
         private static readonly int EscapeRadius = Shader.PropertyToID("_EscapeRadius");
         private static readonly int SkyIntensity = Shader.PropertyToID("_SkyIntensity");
         private static readonly int SkyRotation = Shader.PropertyToID("_SkyRotation");
         private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
+        private static readonly int BlackbodyRange = Shader.PropertyToID("_BlackbodyRange");
         public static readonly int SkyTex = Shader.PropertyToID("_SkyTex");
+        public static readonly int BlackbodyLutTex = Shader.PropertyToID("_BlackbodyLUT");
+
+        private static readonly Vector4 BlackbodyRangeValue =
+            new Vector4((float)BlackbodyLUT.MinKelvin, (float)BlackbodyLUT.MaxKelvin, 0f, 0f);
 
         public void ApplyToMaterial(Material m) {
             m.SetVector(CamPos, camPos);
@@ -47,17 +52,18 @@ namespace CannoliCat.Space {
             m.SetFloat(Time, time);
             m.SetFloat(NoiseScale, noiseScale);
             m.SetFloat(DiskDensity, diskDensity);
-            m.SetFloat(EvolutionSpeed, evolutionSpeed);
             m.SetFloat(TwistIntensity, twistIntensity);
             m.SetFloat(TempMultiplier, tempMultiplier);
             m.SetFloat(DiskThickness, diskThickness);
             m.SetFloat(DiskOuterRadius, diskOuterRadius);
-            m.SetFloat(BeamingPower, beamingPower);
+            m.SetFloat(DiskExposure, diskExposure);
             m.SetFloat(EscapeRadius, escapeRadius);
             m.SetFloat(SkyIntensity, skyIntensity);
             m.SetFloat(SkyRotation, skyRotation);
             m.SetColor(BaseColor, baseColor);
+            m.SetVector(BlackbodyRange, BlackbodyRangeValue);
             if (skyTexture != null) m.SetTexture(SkyTex, skyTexture);
+            if (blackbodyLut != null) m.SetTexture(BlackbodyLutTex, blackbodyLut);
         }
 
         public void ApplyToCompute(ComputeCommandBuffer cmd, ComputeShader cs, int kernel) {
@@ -72,16 +78,16 @@ namespace CannoliCat.Space {
             cmd.SetComputeFloatParam(cs, Time, time);
             cmd.SetComputeFloatParam(cs, NoiseScale, noiseScale);
             cmd.SetComputeFloatParam(cs, DiskDensity, diskDensity);
-            cmd.SetComputeFloatParam(cs, EvolutionSpeed, evolutionSpeed);
             cmd.SetComputeFloatParam(cs, TwistIntensity, twistIntensity);
             cmd.SetComputeFloatParam(cs, TempMultiplier, tempMultiplier);
             cmd.SetComputeFloatParam(cs, DiskThickness, diskThickness);
             cmd.SetComputeFloatParam(cs, DiskOuterRadius, diskOuterRadius);
-            cmd.SetComputeFloatParam(cs, BeamingPower, beamingPower);
+            cmd.SetComputeFloatParam(cs, DiskExposure, diskExposure);
             cmd.SetComputeFloatParam(cs, EscapeRadius, escapeRadius);
             cmd.SetComputeFloatParam(cs, SkyIntensity, skyIntensity);
             cmd.SetComputeFloatParam(cs, SkyRotation, skyRotation);
             cmd.SetComputeVectorParam(cs, BaseColor, baseColor);
+            cmd.SetComputeVectorParam(cs, BlackbodyRange, BlackbodyRangeValue);
         }
     }
 }
