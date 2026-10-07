@@ -11,7 +11,7 @@ Requires **Unity 6** with **URP** (RenderGraph).
 In Unity, open **Window → Package Manager**, click **+ → Install package from git URL…**, and enter:
 
 ```
-https://github.com/cannoli-cat/black-hole-renderer.git#v2.0.0
+https://github.com/cannoli-cat/black-hole-renderer.git#v2.1.0
 ```
 
 ## Setup
@@ -21,6 +21,8 @@ https://github.com/cannoli-cat/black-hole-renderer.git#v2.0.0
 3. Use a **cubemap skybox** material in Lighting settings. It's what gets lensed. Without one, the background renders black.
 
 Tune the radius, spin, disk size, temperature, disk exposure and sky intensity on the renderer feature.
+
+Everything is physically based by default. For an *Interstellar*-style disk, set **Doppler Strength** to 0 and **Temperature Falloff** to around 0.3.
 
 For the best result, turn on **HDR** in your URP asset and use a tonemapper (Neutral or ACES). The disk is much brighter than 1, and without HDR the bright side gets clipped to flat white.
 

@@ -32,6 +32,8 @@ float _TempMultiplier;
 float _DiskThickness;
 float _DiskOuterRadius;
 float _DiskExposure;
+float _DopplerStrength;
+float _TemperatureFalloff;
 float _EscapeRadius;
 float _SkyIntensity;
 float _SkyRotation;
@@ -149,7 +151,7 @@ float3 BH_Render(float3 pos, float3 vel)
         float h_sq = dot(h_vec, h_vec);
         float3 grav = -(1.5 * _Rs / (r_sq * r_sq * r1)) * h_sq * r;
         
-        float3 J = float3(0, 1, 0) * (M * a_phys);
+        float3 J = float3(0, -1, 0) * (M * a_phys);
         float jdotr = dot(J, r);
         float r3 = r_sq * r1;
         float3 drag = (2.0 / r3) * (-3.0 * (jdotr / r_sq) * cross(r, vel) + cross(J, vel));
@@ -186,10 +188,12 @@ float3 BH_Render(float3 pos, float3 vel)
                 float final_density = base_density * cloud_mask;
 
                 float u_t = (r_three_halves + a_phys * sqrtM) / (pow(disk_r, 0.75) * sqrt(max(r_three_halves - 3.0 * M * sqrt(disk_r) + 2.0 * a_phys * sqrtM, 1e-6)));
-                float g = 1.0 / (u_t * max(1.0 - omega_k * b, 1e-4));
+                float g = 1.0 / (u_t * pow(max(1.0 - omega_k * b, 1e-4), _DopplerStrength));
 
                 // Novikov–Thorne profile, normalized so its peak (at r ≈ 1.36 r_isco) is 1
                 float temp_profile = pow(r_isco / disk_r, 0.75) * pow(max(1.0 - sqrt(r_isco / disk_r), 0.0), 0.25) / 0.488;
+                temp_profile = pow(temp_profile, max(_TemperatureFalloff, 0.01));
+                
                 float rest_temp = _TempMultiplier * temp_profile;
                 float obs_temp = rest_temp * g;
 

@@ -7,7 +7,7 @@ namespace CannoliCat.Space {
         public Vector2 tanHalfFov;
         public Vector3 blackHolePos;
         public float rs, spin, time, noiseScale, diskDensity, twistIntensity;
-        public float tempMultiplier, diskThickness, diskOuterRadius, diskExposure, escapeRadius, skyIntensity;
+        public float tempMultiplier, diskThickness, diskOuterRadius, diskExposure, dopplerStrength, temperatureFalloff, escapeRadius, skyIntensity;
         public float skyRotation;
         public Color baseColor;
         public Cubemap skyTexture;
@@ -29,7 +29,9 @@ namespace CannoliCat.Space {
         private static readonly int DiskThickness = Shader.PropertyToID("_DiskThickness");
         private static readonly int DiskOuterRadius = Shader.PropertyToID("_DiskOuterRadius");
         private static readonly int DiskExposure = Shader.PropertyToID("_DiskExposure");
-        private static readonly int EscapeRadius = Shader.PropertyToID("_EscapeRadius");
+        private static readonly int DopplerStrength = Shader.PropertyToID("_DopplerStrength");
+        private static readonly int TemperatureFalloff = Shader.PropertyToID("_TemperatureFalloff");
+        private static readonly int EscapeRadius =Shader.PropertyToID("_EscapeRadius");
         private static readonly int SkyIntensity = Shader.PropertyToID("_SkyIntensity");
         private static readonly int SkyRotation = Shader.PropertyToID("_SkyRotation");
         private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
@@ -57,6 +59,8 @@ namespace CannoliCat.Space {
             m.SetFloat(DiskThickness, diskThickness);
             m.SetFloat(DiskOuterRadius, diskOuterRadius);
             m.SetFloat(DiskExposure, diskExposure);
+            m.SetFloat(DopplerStrength, dopplerStrength);
+            m.SetFloat(TemperatureFalloff, temperatureFalloff);
             m.SetFloat(EscapeRadius, escapeRadius);
             m.SetFloat(SkyIntensity, skyIntensity);
             m.SetFloat(SkyRotation, skyRotation);
@@ -83,6 +87,8 @@ namespace CannoliCat.Space {
             cmd.SetComputeFloatParam(cs, DiskThickness, diskThickness);
             cmd.SetComputeFloatParam(cs, DiskOuterRadius, diskOuterRadius);
             cmd.SetComputeFloatParam(cs, DiskExposure, diskExposure);
+            cmd.SetComputeFloatParam(cs, DopplerStrength, dopplerStrength);
+            cmd.SetComputeFloatParam(cs, TemperatureFalloff, temperatureFalloff);
             cmd.SetComputeFloatParam(cs, EscapeRadius, escapeRadius);
             cmd.SetComputeFloatParam(cs, SkyIntensity, skyIntensity);
             cmd.SetComputeFloatParam(cs, SkyRotation, skyRotation);

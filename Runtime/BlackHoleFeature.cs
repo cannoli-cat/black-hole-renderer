@@ -37,6 +37,12 @@ namespace CannoliCat.Space {
         [Tooltip("Brightness multiplier for the disk only. Doesn't affect the sky.")] [Range(0f, 20f)]
         public float diskExposure = 1.0f;
 
+        [Tooltip("1 = physical Doppler shift and beaming. 0 = none, like the disk in Interstellar.")] [Range(0f, 1f)]
+        public float dopplerStrength = 1.0f;
+
+        [Tooltip("1 = physical temperature falloff. Lower keeps the outer disk hotter, like Interstellar.")] [Range(0f, 1f)]
+        public float temperatureFalloff = 1.0f;
+
         [Header("Turbulence (MRI)")]
         [Range(0.1f, 5f)]
         public float noiseScale = 1.5f;
@@ -159,6 +165,8 @@ namespace CannoliCat.Space {
                 diskThickness = diskThickness,
                 diskOuterRadius = diskOuterRadius,
                 diskExposure = diskExposure,
+                dopplerStrength = dopplerStrength,
+                temperatureFalloff = temperatureFalloff,
 
                 escapeRadius = Mathf.Max(80f,
                     Vector3.Distance(camPos, bhPos) + diskOuterRadius * schwarzschildRadius * 2f),

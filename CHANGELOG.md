@@ -3,6 +3,15 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [2.1.0]
+
+### Added
+- Doppler Strength setting. At 1 the Doppler shift and beaming are physical. At 0 they're off, like the disk in Interstellar.
+- Temperature Falloff setting. At 1 the temperature falls off physically. Lower values keep the outer disk hotter, so it glows all the way out.
+
+### Fixed
+- The spin direction now matches the direction the disk orbits. Before, the disk was orbiting against the spin.
+
 ## [2.0.0]
 
 The accretion disk is now physically based. It looks different from 1.x, so you'll probably want to retune your settings.
@@ -17,7 +26,6 @@ The accretion disk is now physically based. It looks different from 1.x, so you'
 - Doppler shift and gravitational redshift are now one combined Kerr redshift. It sets both the color and the brightness, so the approaching side is brighter and bluer for physical reasons.
 - Brighter temperatures are now actually brighter. Before, every temperature had the same brightness.
 - Evolution Speed now changes how fast time passes. Moving the slider no longer jumps the animation.
-- The spin direction now matches the direction the disk orbits. Before, the disk was orbiting against the spin.
 
 ### Removed
 - Beaming Power. Beaming comes from the physics now, so the slider isn't needed. Use Disk Exposure for brightness.
