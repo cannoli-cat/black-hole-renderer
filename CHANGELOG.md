@@ -3,6 +3,17 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [2.5.0]
+
+### Added
+- Render Scale setting. It renders the black hole and sky at a fraction of the screen resolution and upscales them, while scene objects stay at full resolution. 0.75 is about 1.8x cheaper, 0.5 about 4x.
+
+### Changed
+- Fast mode is about 2.7× faster. It now uses RK4 steps the size of Exact mode's instead of many small Euler steps, with the same accuracy, so rays take far fewer steps through the disk.
+- The disk costs nothing when Disk Density is 0.
+- Rays stop early once the disk in front of them is opaque, which makes views from inside or close to a dense disk much cheaper.
+- The disk turbulence is sampled by distance travelled instead of every step, so thin, glowing disks seen from inside or close to the hole cost far less (about 1.6x in Exact mode and 2.4x in Fast mode inside the disk). The look is unchanged.
+
 ## [2.4.0]
 
 ### Added

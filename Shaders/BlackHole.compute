@@ -9,13 +9,14 @@ Texture2D<float4> SceneColor;
 Texture2D<float> SceneDepth;
 int ScreenWidth;
 int ScreenHeight;
+int SkipGeometry;
 
 [numthreads(8, 8, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= (uint)ScreenWidth || id.y >= (uint)ScreenHeight) return;
     
-    if (SceneDepth[id.xy] > 0.0)
+    if (SkipGeometry == 0 && SceneDepth[id.xy] > 0.0)
     {
         Result[id.xy] = SceneColor[id.xy];
         return;

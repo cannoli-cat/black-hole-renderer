@@ -6,6 +6,7 @@ namespace CannoliCat.Space {
         public Vector3 camPos, camForward, camRight, camUp;
         public Vector2 tanHalfFov;
         public float pixelAngle;
+        public float renderScale;
         public Vector3 blackHolePos;
         public Vector3 observerVelocity;
         public int observerMode;

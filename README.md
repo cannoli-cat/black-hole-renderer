@@ -11,7 +11,7 @@ Requires **Unity 6** with **URP** (RenderGraph).
 In Unity, open **Window → Package Manager**, click **+ → Install package from git URL…**, and enter:
 
 ```
-https://github.com/cannoli-cat/black-hole-renderer.git#v2.4.0
+https://github.com/cannoli-cat/black-hole-renderer.git#v2.5.0
 ```
 
 ## Setup
@@ -63,6 +63,8 @@ The turbulence settings shape the gas:
 - **Orbital Stretch**: stretches the gas into streaks along the orbit.
 - **Edge Fraying**: breaks the outer disk into separate wispy strands.
 - **Plunging Gas** and **Plunge Glow**: gas spiralling in from the disk's inner edge to the horizon.
+
+If it runs too slowly, lower **Render Scale** on the renderer feature. It renders the black hole and sky at a fraction of the screen resolution and upscales them, while scene objects stay sharp. 0.75 is about 1.8x cheaper, 0.5 about 4x.
 
 For the best result, turn on **HDR** in your URP asset and use a tonemapper (Neutral or ACES). The disk is much brighter than 1, and without HDR the bright side gets clipped to flat white.
 

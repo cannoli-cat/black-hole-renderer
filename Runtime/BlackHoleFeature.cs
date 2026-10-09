@@ -14,6 +14,10 @@ namespace CannoliCat.Space {
         public Shader shader;
         
         public ComputeShader computeShader;
+
+        [Tooltip("Renders the black hole and sky at a fraction of the screen resolution, then upscales. 0.75 is about 1.8x cheaper, 0.5 about 4x. Scene objects stay at full resolution.")]
+        [Range(0.25f, 1f)]
+        public float renderScale = 1f;
         
         [Range(0f, 2f)]
         public float skyIntensity = 0.3f;
@@ -166,7 +170,7 @@ namespace CannoliCat.Space {
             }
 
             if (computeShader != null) {
-                computePass = new BlackHoleComputePass(computeShader);
+                computePass = new BlackHoleComputePass(computeShader, material);
             }
         }
 
@@ -256,7 +260,8 @@ namespace CannoliCat.Space {
                 camRight = camRight,
                 camUp = camUp,
                 tanHalfFov = new Vector2(halfV * cam.aspect, halfV),
-                pixelAngle = 2f * halfV / Mathf.Max(cam.pixelHeight, 1),
+                pixelAngle = 2f * halfV / Mathf.Max(cam.pixelHeight * renderScale, 1f),
+                renderScale = renderScale,
                 blackHolePos = bhPos,
                 rs = schwarzschildRadius,
 
