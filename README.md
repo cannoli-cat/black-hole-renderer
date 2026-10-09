@@ -11,7 +11,7 @@ Requires **Unity 6** with **URP** (RenderGraph).
 In Unity, open **Window → Package Manager**, click **+ → Install package from git URL…**, and enter:
 
 ```
-https://github.com/cannoli-cat/black-hole-renderer.git#v2.3.0
+https://github.com/cannoli-cat/black-hole-renderer.git#v2.4.0
 ```
 
 ## Setup
@@ -45,9 +45,11 @@ Create your own with **Create → CannoliCat → Black Hole Preset**.
 - **Orbiting**: a circular orbit at the camera's current distance, moving with the disk.
 - **Falling**: falling straight in from rest far away.
 
-Moving fast bends the view toward the direction of motion and shifts colors blue ahead and red behind. Close to the hole, light falling down to the camera is also shifted bluer and brighter. Keep the camera outside the horizon.
+Moving fast bends the view toward the direction of motion and shifts colors blue ahead and red behind. Close to the hole, light falling down to the camera is also shifted bluer and brighter. In Exact mode the camera can also go inside the horizon: there it's always a freely falling observer, since nothing can stay at rest. Fast mode needs the camera to stay outside.
 
 To fly a real orbit, add **Black Hole Orbit Camera** to your camera. It moves the camera around the hole at the correct orbital speed, on the same clock as the disk, so the gas beside you keeps pace with you. While it's active, that camera always renders as Orbiting. Raise the disk's **Evolution Speed** or the component's **Speed Multiplier** for a faster orbit.
+
+To fall in, add **Black Hole Fall Camera** instead. It drops the camera from where you placed it, at the correct speed, through the horizon, and stops just short of the center, optionally looping. While it's active, that camera renders as Falling with Exact ray tracing. Set **Look** to **Away** inside the horizon to see the outside universe shrink into a bright patch behind you.
 
 ## Disk look
 

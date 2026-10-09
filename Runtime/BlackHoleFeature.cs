@@ -231,8 +231,15 @@ namespace CannoliCat.Space {
             BlackHole.Active.SimulatedTime = simulatedTime;
 
             var motion = observerMotion;
-            if (Application.isPlaying && cam.TryGetComponent(out BlackHoleOrbitCamera orbit) && orbit.isActiveAndEnabled)
-                motion = ObserverMotion.Orbiting;
+            var exact = rayTracing == RayTracingMode.Exact;
+            if (Application.isPlaying) {
+                if (cam.TryGetComponent(out BlackHoleFallCamera fall) && fall.isActiveAndEnabled) {
+                    motion = ObserverMotion.Falling;
+                    exact = true;
+                }
+                else if (cam.TryGetComponent(out BlackHoleOrbitCamera orbit) && orbit.isActiveAndEnabled)
+                    motion = ObserverMotion.Orbiting;
+            }
 
             var t = cam.transform;
             var halfV = Mathf.Tan(cam.fieldOfView * 0.5f * Mathf.Deg2Rad);
@@ -254,7 +261,7 @@ namespace CannoliCat.Space {
                 rs = schwarzschildRadius,
 
                 spin = spinParameter * schwarzschildRadius * 0.5f,
-                exactKerr = rayTracing == RayTracingMode.Exact,
+                exactKerr = exact,
                 observerVelocity = Vector3.ClampMagnitude(observerVelocity, 0.99f),
                 observerMode = (int)motion,
                 time = simulatedTime,

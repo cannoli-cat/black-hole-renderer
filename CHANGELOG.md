@@ -3,6 +3,16 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [2.4.0]
+
+### Added
+- The camera can now go inside the horizon in Exact mode. Light is traced backward through the real spacetime, and inside the horizon (or in Falling mode) the camera is a freely falling observer, so the view stays correct all the way in.
+- Black Hole Fall Camera component. It drops the camera from where it's placed, at the correct speed on the disk's clock, through the horizon, and stops just short of the center. It can loop.
+
+### Changed
+- Falling mode in Exact ray tracing is now built directly from a freely falling observer instead of a boosted observer at rest. Outside the horizon the result is the same.
+- The starfield in Exact mode is rotated a few degrees around the spin axis compared with 2.3.0, from the change in how rays are traced. The black hole and disk are unchanged.
+
 ## [2.3.0]
 
 ### Added

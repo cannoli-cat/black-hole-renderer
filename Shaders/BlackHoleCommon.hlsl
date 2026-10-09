@@ -183,12 +183,12 @@ void ks_metric(float3 x, float a, float M, out float r, out float f, out float3 
     l = float3(lx, ly, lz);
 }
 
-void ks_deriv(float3 x, float3 p, float a, float M, out float3 dx, out float3 dp)
+void ks_deriv(float3 x, float3 p, float a, float M, float E, out float3 dx, out float3 dp)
 {
     float r, f;
     float3 l;
     ks_metric(x, a, M, r, f, l);
-    float k = 1 + dot(l, p);
+    float k = E + dot(l, p);
 
     dx = p - f * l * k;
 
@@ -211,25 +211,25 @@ void ks_deriv(float3 x, float3 p, float a, float M, out float3 dx, out float3 dp
     dp = 0.5 * grad_S;
 }
 
-void ks_rk4(inout float3 x, inout float3 p, float h, float a, float M)
+void ks_rk4(inout float3 x, inout float3 p, float h, float a, float M, float E)
 {
     float3 dx1, dp1;
-    ks_deriv(x, p, a, M, dx1, dp1);
+    ks_deriv(x, p, a, M, E, dx1, dp1);
 
     float3 x2 = x + 0.5 * h * dx1;
     float3 p2 = p + 0.5 * h * dp1;
     float3 dx2, dp2;
-    ks_deriv(x2, p2, a, M, dx2, dp2);
+    ks_deriv(x2, p2, a, M, E, dx2, dp2);
 
     float3 x3 = x + 0.5 * h * dx2;
     float3 p3 = p + 0.5 * h * dp2;
     float3 dx3, dp3;
-    ks_deriv(x3, p3, a, M, dx3, dp3);
+    ks_deriv(x3, p3, a, M, E, dx3, dp3);
 
     float3 x4 = x + h * dx3;
     float3 p4 = p + h * dp3;
     float3 dx4, dp4;
-    ks_deriv(x4, p4, a, M, dx4, dp4);
+    ks_deriv(x4, p4, a, M, E, dx4, dp4);
 
     x += (h / 6.0) * (dx1 + 2.0 * dx2 + 2.0 * dx3 + dx4);
     p += (h / 6.0) * (dp1 + 2.0 * dp2 + 2.0 * dp3 + dp4);
@@ -281,7 +281,7 @@ float3 BH_Render(float3 pos, float3 vel)
     phi_hat /= max(length(phi_hat), 1e-4);
 
     #if defined(BH_KERR)
-    float a_ks = -a_phys;
+    float a_ks = a_phys;
 
     float3 kx = unity_to_kerr(pos - _BlackHolePos);
 
@@ -305,16 +305,25 @@ float3 BH_Render(float3 pos, float3 vel)
     float varpi = sqrt(big_a) * sin_t / sqrt(sigma);
     float v_orb = (omega_orb - omega_drag) * varpi / alpha;
     float v_fall = sqrt(max(1.0 - alpha * alpha, 0.0));
+    float r_photon = 2.0 * M * (1.0 + cos(2.0 / 3.0 * acos(-a_phys / M)));
+    
     #else
+    
     float r_c = length(pos - _BlackHolePos);
     float alpha = sqrt(1.0 - _Rs / r_c);
     float v_orb = sqrt(M / r_c) * length(r_hat.xz) / alpha;
     float v_fall = sqrt(_Rs / r_c);
+    
     #endif
     
     int mode = (int)round(_ObserverMode);
     if (mode == 1) beta = min(v_orb, 0.99) * phi_hat;
     else if (mode == 2) beta = min(v_fall, 0.99) * -r_hat;
+    
+    #if defined(BH_KERR)
+    bool rain = mode == 2 || kr0 < r_horizon * 1.001;
+    if (rain) beta = 0;
+    #endif
 
     float beta2 = dot(beta, beta);
     float gamma_l = 1.0 / sqrt(1.0 - beta2);
@@ -326,11 +335,23 @@ float3 BH_Render(float3 pos, float3 vel)
 
     #if defined(BH_KERR)
     float3 n = unity_to_kerr(vel);
-
-    float c_r = 2.0 * M * kr0 / delta;
+    
     float3 grad_r = float3(kx.x * r2, kx.y * r2, kx.z * (r2 + a2)) / (kr0 * (2.0 * r2 - dot(kx, kx) + a2));
-    float lu = alpha * (1.0 + c_r * dot(l0, grad_r));
-    float4 u = float4(alpha * c_r * grad_r, alpha) - f0 * lu * float4(l0, -1.0);
+    float4 u;
+    
+    if (rain)
+    {
+        float S = sqrt(2.0 * M * kr0 * (r2 + a2));
+        float3 u_cov = -(2.0 * M * kr0 / (2.0 * M * kr0 + S)) * grad_r;
+        float Lu = 1.0 + dot(l0, u_cov);
+        u = float4(u_cov, 1.0) - f0 * Lu * float4(l0, -1.0);
+    }
+    else 
+    {
+        float c_r = 2.0 * M * kr0 / delta;
+        float lu = alpha * (1.0 + c_r * dot(l0, grad_r));
+        u = float4(alpha * c_r * grad_r, alpha) - f0 * lu * float4(l0, -1.0);
+    } 
 
     float4 e1 = float4(1, 0, 0, 0);
     e1 += g_dot(e1, u, f0, l0) * u;
@@ -347,15 +368,17 @@ float3 BH_Render(float3 pos, float3 vel)
     e3 -= g_dot(e3, e2, f0, l0) * e2;
     e3 /= sqrt(g_dot(e3, e3, f0, l0));
 
-    float4 k = u + n.x * e1 + n.y * e2 + n.z * e3;
+    float4 k = u - (n.x * e1 + n.y * e2 + n.z * e3);
 
     float Lk = k.w + dot(l0, k.xyz);
     float4 k_low = float4(k.xyz, -k.w) + f0 * Lk * float4(l0, 1.0);
-
-    float3 kp = k_low.xyz / -k_low.w;
-    float L_ks = kx.y * kp.x - kx.x * kp.y;
     
-    float E_cam = u.w - dot(kp, u.xyz);
+    float E_ph = -k_low.w;
+
+    float3 kp = k_low.xyz;
+    float L_ks = (kx.x * kp.y - kx.y * kp.x) / E_ph;
+    
+    float E_cam = 1.0 / E_ph;
     doppler *= E_cam;
     #else
     float L_ks = cross(pos - _BlackHolePos, vel).y;
@@ -368,12 +391,6 @@ float3 BH_Render(float3 pos, float3 vel)
     for (int i = 0; i < MAX_STEPS; i++)
     {
         #if defined(BH_KERR)
-        if (r_now < r_horizon)
-        {
-            hit = true;
-            break;
-        }
-
         if (r_now > _EscapeRadius)
         {
             break;
@@ -386,11 +403,18 @@ float3 BH_Render(float3 pos, float3 vel)
         }
 
         float3 prev_pos = pos;
-        ks_rk4(kx, kp, ds, a_ks, M);
+        float r_before = r_now;
+        ks_rk4(kx, kp, -ds, a_ks, M, E_ph);
 
         float f_tmp;
         float3 l_tmp;
         ks_metric(kx, a_ks, M, r_now, f_tmp, l_tmp);
+        
+        if ((r_now < r_photon && r_now < r_before) || any(abs(kp) > 100.0))
+        {
+            hit = true;
+            break;
+        }
 
         pos = _BlackHolePos + kerr_to_unity(kx);
 
