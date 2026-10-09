@@ -3,6 +3,26 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [2.2.0]
+
+### Added
+- Exact Kerr ray tracing. Light now follows the true paths around a spinning black hole, so the shadow and the lensed disk have the right shape at any spin. A new Ray Tracing setting picks Exact (the default) or Fast, the old approximation. Fast is cheaper and recommended for WebGL and mobile.
+- Presets. Assign a Black Hole Preset on the renderer feature and click Apply, or click Save Current to Preset to store your settings. Four come with the package: Realistic, Quasar, M87 and Interstellar. Make your own with **Create → CannoliCat → Black Hole Preset**.
+- Turbulence Contrast setting. The turbulence now heats and cools the gas too, not just thins it, so the disk gets brighter hot spots and darker lanes.
+- Filament Sharpness setting. It goes from soft clouds to sharp, stringy filaments.
+- Turbulence Warp setting. It swirls the turbulence into eddies.
+- Orbital Stretch setting. It stretches the turbulence into long streaks along the orbit, the way differential rotation shears real gas.
+- Edge Fraying setting. It breaks the outer disk into separate wispy strands with gaps between them.
+- Plunging region. Gas now spirals in from the inner edge of the disk (the ISCO) to the horizon, with its own inflow speed and redshift. Plunging Gas sets how much there is and Plunge Glow sets its temperature. It's most visible at low spin, where the gap between the ISCO and the horizon is widest.
+
+### Changed
+- In Exact mode, the disk's radius is the true Kerr radius, so the temperature and orbit speed are right close to the hole.
+- `BlackHoleParams.ApplyToCompute` no longer takes a kernel index.
+
+### Fixed
+- Streaky "fingers" at the edge of the shadow.
+- Red crescents near the disk plane, caused by steps that were too large to resolve a thin disk.
+
 ## [2.1.0]
 
 ### Added

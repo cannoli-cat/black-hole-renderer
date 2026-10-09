@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d22354386e4147a7b26b5d88f845b765, type: 3}
+  m_Name: Realistic
+  m_EditorClassIdentifier: 
+  skyIntensity: 0.5
+  schwarzschildRadius: 2
+  spinParameter: 0.9
+  rayTracing: 1
+  diskThickness: 0.02
+  diskOuterRadius: 12
+  maxTemperature: 10000
+  diskDensity: 0.5
+  diskExposure: 1.0
+  dopplerStrength: 1
+  temperatureFalloff: 1.0
+  noiseScale: 1.0
+  evolutionSpeed: 1.0
+  twistIntensity: 1.5
+  turbulenceContrast: 0.3
+  filamentSharpness: 0.5
+  turbulenceWarp: 0.5
+  orbitalStretch: 2
+  edgeFraying: 0.2
+  plungingGas: 0.4
+  plungeGlow: 0.3
+  diskColorTint: {r: 1, g: 1, b: 1, a: 1}

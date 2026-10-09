@@ -2,7 +2,7 @@
 
 A real-time, ray-marched black hole for Unity URP. Gravitational lensing of your skybox, and a spinning accretion disk with blackbody color, a physically based temperature profile, and relativistic Doppler and gravitational redshift.
 
-![Black hole with a lensed accretion disk in front of the Milky Way](Documentation~/black-hole.gif)
+![Black hole with the M87 preset](Documentation~/black-hole.gif)
 
 ## Installation
 
@@ -11,7 +11,7 @@ Requires **Unity 6** with **URP** (RenderGraph).
 In Unity, open **Window → Package Manager**, click **+ → Install package from git URL…**, and enter:
 
 ```
-https://github.com/cannoli-cat/black-hole-renderer.git#v2.1.0
+https://github.com/cannoli-cat/black-hole-renderer.git#v2.2.0
 ```
 
 ## Setup
@@ -22,7 +22,33 @@ https://github.com/cannoli-cat/black-hole-renderer.git#v2.1.0
 
 Tune the radius, spin, disk size, temperature, disk exposure and sky intensity on the renderer feature.
 
-Everything is physically based by default. For an *Interstellar*-style disk, set **Doppler Strength** to 0 and **Temperature Falloff** to around 0.3.
+## Presets
+
+The renderer feature has a **Preset** field. Assign one and click **Apply** to copy its values into the settings, or click **Save Current to Preset** to store yours. The package includes:
+
+- **Realistic**: a physically based thin disk around a fast-spinning black hole.
+- **Quasar**: a hotter, brighter, more turbulent disk.
+- **M87**: a thick, dim, orange disk, like the Event Horizon Telescope image.
+- **Interstellar**: a Gargantua-style disk with no Doppler shift, long hair-like streaks and a frayed outer edge.
+
+Create your own with **Create → CannoliCat → Black Hole Preset**.
+
+## Ray tracing
+
+**Exact** (the default) traces true Kerr light paths around a spinning black hole. **Fast** uses Schwarzschild bending with approximate frame dragging. It's cheaper, so use it on WebGL and mobile.
+
+## Disk look
+
+Everything is physically based by default. **Doppler Strength** and **Temperature Falloff** at 1 are physical. Lower them for an *Interstellar*-style disk.
+
+The turbulence settings shape the gas:
+
+- **Turbulence Contrast**: how much the turbulence heats and cools the gas.
+- **Filament Sharpness**: soft clouds at 0, sharp filaments at 1.
+- **Turbulence Warp**: swirls the gas into eddies.
+- **Orbital Stretch**: stretches the gas into streaks along the orbit.
+- **Edge Fraying**: breaks the outer disk into separate wispy strands.
+- **Plunging Gas** and **Plunge Glow**: gas spiralling in from the disk's inner edge to the horizon.
 
 For the best result, turn on **HDR** in your URP asset and use a tonemapper (Neutral or ACES). The disk is much brighter than 1, and without HDR the bright side gets clipped to flat white.
 

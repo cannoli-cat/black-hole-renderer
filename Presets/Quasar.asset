@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d22354386e4147a7b26b5d88f845b765, type: 3}
+  m_Name: Quasar
+  m_EditorClassIdentifier: 
+  skyIntensity: 0.4
+  schwarzschildRadius: 2
+  spinParameter: 0.97
+  rayTracing: 1
+  diskThickness: 0.01
+  diskOuterRadius: 15
+  maxTemperature: 13000
+  diskDensity: 0.6
+  diskExposure: 0.7
+  dopplerStrength: 1
+  temperatureFalloff: 1.0
+  noiseScale: 1.0
+  evolutionSpeed: 1.5
+  twistIntensity: 1.0
+  turbulenceContrast: 0.4
+  filamentSharpness: 0.8
+  turbulenceWarp: 1.0
+  orbitalStretch: 3
+  edgeFraying: 0.3
+  plungingGas: 0.6
+  plungeGlow: 0.4
+  diskColorTint: {r: 1, g: 1, b: 1, a: 1}

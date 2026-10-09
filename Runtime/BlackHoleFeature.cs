@@ -4,6 +4,11 @@ using UnityEngine.Rendering.Universal;
 
 namespace CannoliCat.Space {
     public class BlackHoleFeature : ScriptableRendererFeature {
+        public enum RayTracingMode { Fast, Exact }
+
+        [Tooltip("Apply copies this preset's values into the settings below. Editing the sliders afterward doesn't change the preset.")]
+        public BlackHolePreset preset;
+
         [Header("Shaders")]
         public Shader shader;
         
@@ -22,6 +27,9 @@ namespace CannoliCat.Space {
 
         [Range(0f, 0.999f)]
         public float spinParameter = 0.9f;
+
+        [Tooltip("Exact: true Kerr light paths. Fast: Schwarzschild bending with approximate frame dragging, cheaper and recommended for WebGL and mobile.")]
+        public RayTracingMode rayTracing = RayTracingMode.Exact;
 
         [Header("Disk Geometry")]
         public float diskThickness = 0.05f;
@@ -52,8 +60,80 @@ namespace CannoliCat.Space {
         [Range(0f, 8f)]
         public float twistIntensity = 4.0f;
 
+        [Tooltip("How much the turbulence heats and cools the gas. Higher makes brighter hot spots and darker lanes.")] [Range(0f, 1f)]
+        public float turbulenceContrast = 0.3f;
+
+        [Tooltip("0 = soft clouds. 1 = sharp, stringy filaments.")] [Range(0f, 1f)]
+        public float filamentSharpness = 0.5f;
+
+        [Tooltip("How strongly the turbulence is swirled into eddies.")] [Range(0f, 2f)]
+        public float turbulenceWarp = 0.5f;
+
+        [Tooltip("Stretches the turbulence along the orbit into long streaks, like differential rotation shears real gas.")] [Range(0f, 40f)]
+        public float orbitalStretch = 2.0f;
+
+        [Tooltip("0 = the disk is equally solid out to its edge. Higher breaks the outer disk into separate wispy strands with gaps between them.")] [Range(0f, 1f)]
+        public float edgeFraying = 0f;
+
+        [Header("Plunging Region (inside the ISCO)")]
+        [Tooltip("How much gas spirals in from the ISCO to the horizon. 0 = the disk ends sharply at the ISCO.")] [Range(0f, 1f)]
+        public float plungingGas = 0.4f;
+
+        [Tooltip("Temperature of the plunging gas, as a fraction of Max Temperature.")] [Range(0f, 1f)]
+        public float plungeGlow = 0.3f;
+
         [Header("Color")]
         public Color diskColorTint = Color.white;
+
+        public void ApplyPreset(BlackHolePreset p) {
+            skyIntensity = p.skyIntensity;
+            schwarzschildRadius = p.schwarzschildRadius;
+            spinParameter = p.spinParameter;
+            rayTracing = p.rayTracing;
+            diskThickness = p.diskThickness;
+            diskOuterRadius = p.diskOuterRadius;
+            maxTemperature = p.maxTemperature;
+            diskDensity = p.diskDensity;
+            diskExposure = p.diskExposure;
+            dopplerStrength = p.dopplerStrength;
+            temperatureFalloff = p.temperatureFalloff;
+            noiseScale = p.noiseScale;
+            evolutionSpeed = p.evolutionSpeed;
+            twistIntensity = p.twistIntensity;
+            turbulenceContrast = p.turbulenceContrast;
+            filamentSharpness = p.filamentSharpness;
+            turbulenceWarp = p.turbulenceWarp;
+            orbitalStretch = p.orbitalStretch;
+            edgeFraying = p.edgeFraying;
+            plungingGas = p.plungingGas;
+            plungeGlow = p.plungeGlow;
+            diskColorTint = p.diskColorTint;
+        }
+
+        public void SaveToPreset(BlackHolePreset p) {
+            p.skyIntensity = skyIntensity;
+            p.schwarzschildRadius = schwarzschildRadius;
+            p.spinParameter = spinParameter;
+            p.rayTracing = rayTracing;
+            p.diskThickness = diskThickness;
+            p.diskOuterRadius = diskOuterRadius;
+            p.maxTemperature = maxTemperature;
+            p.diskDensity = diskDensity;
+            p.diskExposure = diskExposure;
+            p.dopplerStrength = dopplerStrength;
+            p.temperatureFalloff = temperatureFalloff;
+            p.noiseScale = noiseScale;
+            p.evolutionSpeed = evolutionSpeed;
+            p.twistIntensity = twistIntensity;
+            p.turbulenceContrast = turbulenceContrast;
+            p.filamentSharpness = filamentSharpness;
+            p.turbulenceWarp = turbulenceWarp;
+            p.orbitalStretch = orbitalStretch;
+            p.edgeFraying = edgeFraying;
+            p.plungingGas = plungingGas;
+            p.plungeGlow = plungeGlow;
+            p.diskColorTint = diskColorTint;
+        }
 
         private Material material;
         private Texture2D blackbodyLut;
@@ -157,6 +237,7 @@ namespace CannoliCat.Space {
                 rs = schwarzschildRadius,
 
                 spin = spinParameter * schwarzschildRadius * 0.5f,
+                exactKerr = rayTracing == RayTracingMode.Exact,
                 time = simulatedTime,
                 noiseScale = noiseScale,
                 diskDensity = diskDensity,
@@ -167,6 +248,13 @@ namespace CannoliCat.Space {
                 diskExposure = diskExposure,
                 dopplerStrength = dopplerStrength,
                 temperatureFalloff = temperatureFalloff,
+                turbulenceContrast = turbulenceContrast,
+                filamentSharpness = filamentSharpness,
+                turbulenceWarp = turbulenceWarp,
+                orbitalStretch = orbitalStretch,
+                edgeFraying = edgeFraying,
+                plungingGas = plungingGas,
+                plungeGlow = plungeGlow,
 
                 escapeRadius = Mathf.Max(80f,
                     Vector3.Distance(camPos, bhPos) + diskOuterRadius * schwarzschildRadius * 2f),

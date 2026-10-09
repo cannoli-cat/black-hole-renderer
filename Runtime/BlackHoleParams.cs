@@ -7,9 +7,10 @@ namespace CannoliCat.Space {
         public Vector2 tanHalfFov;
         public Vector3 blackHolePos;
         public float rs, spin, time, noiseScale, diskDensity, twistIntensity;
-        public float tempMultiplier, diskThickness, diskOuterRadius, diskExposure, dopplerStrength, temperatureFalloff, escapeRadius, skyIntensity;
+        public float tempMultiplier, diskThickness, diskOuterRadius, diskExposure, dopplerStrength, temperatureFalloff, turbulenceContrast, filamentSharpness, turbulenceWarp, orbitalStretch, edgeFraying, plungingGas, plungeGlow, escapeRadius, skyIntensity;
         public float skyRotation;
         public Color baseColor;
+        public bool exactKerr;
         public Cubemap skyTexture;
         public Texture2D blackbodyLut;
 
@@ -31,6 +32,13 @@ namespace CannoliCat.Space {
         private static readonly int DiskExposure = Shader.PropertyToID("_DiskExposure");
         private static readonly int DopplerStrength = Shader.PropertyToID("_DopplerStrength");
         private static readonly int TemperatureFalloff = Shader.PropertyToID("_TemperatureFalloff");
+        private static readonly int TurbulenceContrast = Shader.PropertyToID("_TurbulenceContrast");
+        private static readonly int FilamentSharpness = Shader.PropertyToID("_FilamentSharpness");
+        private static readonly int TurbulenceWarp = Shader.PropertyToID("_TurbulenceWarp");
+        private static readonly int OrbitalStretch = Shader.PropertyToID("_OrbitalStretch");
+        private static readonly int EdgeFraying = Shader.PropertyToID("_EdgeFraying");
+        private static readonly int PlungingGas = Shader.PropertyToID("_PlungingGas");
+        private static readonly int PlungeGlow = Shader.PropertyToID("_PlungeGlow");
         private static readonly int EscapeRadius =Shader.PropertyToID("_EscapeRadius");
         private static readonly int SkyIntensity = Shader.PropertyToID("_SkyIntensity");
         private static readonly int SkyRotation = Shader.PropertyToID("_SkyRotation");
@@ -38,11 +46,13 @@ namespace CannoliCat.Space {
         private static readonly int BlackbodyRange = Shader.PropertyToID("_BlackbodyRange");
         public static readonly int SkyTex = Shader.PropertyToID("_SkyTex");
         public static readonly int BlackbodyLutTex = Shader.PropertyToID("_BlackbodyLUT");
+        public const string KerrKeyword = "BH_KERR";
 
         private static readonly Vector4 BlackbodyRangeValue =
-            new Vector4((float)BlackbodyLUT.MinKelvin, (float)BlackbodyLUT.MaxKelvin, 0f, 0f);
+            new((float)BlackbodyLUT.MinKelvin, (float)BlackbodyLUT.MaxKelvin, 0f, 0f);
 
         public void ApplyToMaterial(Material m) {
+            m.SetKeyword(new LocalKeyword(m.shader, KerrKeyword), exactKerr);
             m.SetVector(CamPos, camPos);
             m.SetVector(CamForward, camForward);
             m.SetVector(CamRight, camRight);
@@ -61,6 +71,13 @@ namespace CannoliCat.Space {
             m.SetFloat(DiskExposure, diskExposure);
             m.SetFloat(DopplerStrength, dopplerStrength);
             m.SetFloat(TemperatureFalloff, temperatureFalloff);
+            m.SetFloat(TurbulenceContrast, turbulenceContrast);
+            m.SetFloat(FilamentSharpness, filamentSharpness);
+            m.SetFloat(TurbulenceWarp, turbulenceWarp);
+            m.SetFloat(OrbitalStretch, orbitalStretch);
+            m.SetFloat(EdgeFraying, edgeFraying);
+            m.SetFloat(PlungingGas, plungingGas);
+            m.SetFloat(PlungeGlow, plungeGlow);
             m.SetFloat(EscapeRadius, escapeRadius);
             m.SetFloat(SkyIntensity, skyIntensity);
             m.SetFloat(SkyRotation, skyRotation);
@@ -70,7 +87,7 @@ namespace CannoliCat.Space {
             if (blackbodyLut != null) m.SetTexture(BlackbodyLutTex, blackbodyLut);
         }
 
-        public void ApplyToCompute(ComputeCommandBuffer cmd, ComputeShader cs, int kernel) {
+        public void ApplyToCompute(ComputeCommandBuffer cmd, ComputeShader cs) {
             cmd.SetComputeVectorParam(cs, CamPos, camPos);
             cmd.SetComputeVectorParam(cs, CamForward, camForward);
             cmd.SetComputeVectorParam(cs, CamRight, camRight);
@@ -89,6 +106,13 @@ namespace CannoliCat.Space {
             cmd.SetComputeFloatParam(cs, DiskExposure, diskExposure);
             cmd.SetComputeFloatParam(cs, DopplerStrength, dopplerStrength);
             cmd.SetComputeFloatParam(cs, TemperatureFalloff, temperatureFalloff);
+            cmd.SetComputeFloatParam(cs, TurbulenceContrast, turbulenceContrast);
+            cmd.SetComputeFloatParam(cs, FilamentSharpness, filamentSharpness);
+            cmd.SetComputeFloatParam(cs, TurbulenceWarp, turbulenceWarp);
+            cmd.SetComputeFloatParam(cs, OrbitalStretch, orbitalStretch);
+            cmd.SetComputeFloatParam(cs, EdgeFraying, edgeFraying);
+            cmd.SetComputeFloatParam(cs, PlungingGas, plungingGas);
+            cmd.SetComputeFloatParam(cs, PlungeGlow, plungeGlow);
             cmd.SetComputeFloatParam(cs, EscapeRadius, escapeRadius);
             cmd.SetComputeFloatParam(cs, SkyIntensity, skyIntensity);
             cmd.SetComputeFloatParam(cs, SkyRotation, skyRotation);

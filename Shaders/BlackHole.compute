@@ -1,4 +1,5 @@
 #pragma kernel CSMain
+#pragma multi_compile_local _ BH_KERR
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "BlackHoleCommon.hlsl"

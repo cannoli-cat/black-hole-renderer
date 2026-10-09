@@ -36,6 +36,7 @@ namespace CannoliCat.Space {
                 cs.SetTexture(0, BlackHoleParams.SkyTex, settings.skyTexture);
             if (settings.blackbodyLut != null)
                 cs.SetTexture(0, BlackHoleParams.BlackbodyLutTex, settings.blackbodyLut);
+            cs.SetKeyword(new LocalKeyword(cs, BlackHoleParams.KerrKeyword), settings.exactKerr);
 
             var desc = new TextureDesc(cam.pixelWidth, cam.pixelHeight) {
                 name = "BlackHoleColor",
@@ -59,7 +60,7 @@ namespace CannoliCat.Space {
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc((PassData d, ComputeGraphContext ctx) => {
-                    d.settings.ApplyToCompute(ctx.cmd, d.cs, 0);
+                    d.settings.ApplyToCompute(ctx.cmd, d.cs);
                     ctx.cmd.SetComputeIntParam(d.cs, ScreenWidthId, d.width);
                     ctx.cmd.SetComputeIntParam(d.cs, ScreenHeightId, d.height);
                     ctx.cmd.SetComputeTextureParam(d.cs, 0, ResultId, d.output);
