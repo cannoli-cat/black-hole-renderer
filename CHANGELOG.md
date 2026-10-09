@@ -3,6 +3,17 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [2.3.0]
+
+### Added
+- Moving observer. The camera can now move at relativistic speed: the view bunches toward the direction of motion, and light ahead is shifted blue and brighter while light behind is shifted red and dimmer. Set it with Observer Velocity, as a fraction of the speed of light.
+- Observer Motion setting. Orbiting puts the camera in a circular orbit at its current distance, moving with the disk. Falling drops it from rest far away, straight toward the hole. Manual uses Observer Velocity.
+- Black Hole Orbit Camera component. It flies the camera on a circular orbit at the physically correct speed, on the same clock as the disk, and renders that camera as Orbiting.
+- Gravitational blueshift. Light falling down to the camera gains energy, so the sky and disk look bluer and brighter close to the hole.
+
+### Fixed
+- Close to the hole, the view in Exact mode was rendered as if the camera were falling inward, which made the shadow look too big (57° instead of 45° at 3 Schwarzschild radii). The camera is now at rest relative to the hole's rotating frame, and the shadow matches theory.
+
 ## [2.2.1]
 
 ### Fixed

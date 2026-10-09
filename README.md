@@ -11,7 +11,7 @@ Requires **Unity 6** with **URP** (RenderGraph).
 In Unity, open **Window → Package Manager**, click **+ → Install package from git URL…**, and enter:
 
 ```
-https://github.com/cannoli-cat/black-hole-renderer.git#v2.2.1
+https://github.com/cannoli-cat/black-hole-renderer.git#v2.3.0
 ```
 
 ## Setup
@@ -36,6 +36,18 @@ Create your own with **Create → CannoliCat → Black Hole Preset**.
 ## Ray tracing
 
 **Exact** (the default) traces true Kerr light paths around a spinning black hole. **Fast** uses Schwarzschild bending with approximate frame dragging. It's cheaper, so use it on WebGL and mobile.
+
+## Observer
+
+**Observer Motion** sets how the camera moves:
+
+- **Manual**: uses **Observer Velocity**, a world-space velocity as a fraction of the speed of light. Zero means at rest relative to the black hole.
+- **Orbiting**: a circular orbit at the camera's current distance, moving with the disk.
+- **Falling**: falling straight in from rest far away.
+
+Moving fast bends the view toward the direction of motion and shifts colors blue ahead and red behind. Close to the hole, light falling down to the camera is also shifted bluer and brighter. Keep the camera outside the horizon.
+
+To fly a real orbit, add **Black Hole Orbit Camera** to your camera. It moves the camera around the hole at the correct orbital speed, on the same clock as the disk, so the gas beside you keeps pace with you. While it's active, that camera always renders as Orbiting. Raise the disk's **Evolution Speed** or the component's **Speed Multiplier** for a faster orbit.
 
 ## Disk look
 

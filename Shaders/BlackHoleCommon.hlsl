@@ -23,6 +23,8 @@ float2 _TanHalfFov;
 float _PixelAngle;
 
 float3 _BlackHolePos;
+float3 _ObserverVelocity;
+float _ObserverMode;
 float _Rs;
 float _Spin;
 float _BHTime;
@@ -59,6 +61,13 @@ float erf_approx(float x)
     float t = 1.0 / (1.0 + 0.3275911 * abs(x));
     float y = 1.0 - ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * exp(-x * x);
     return sign(x) * y;
+}
+
+float3 blackbody(float T)
+{
+    float lut_temp = max(T, _BlackbodyRange.x);
+    float lut_u = log(lut_temp / _BlackbodyRange.x) / log(_BlackbodyRange.y / _BlackbodyRange.x);
+    return SAMPLE_TEXTURE2D_LOD(_BlackbodyLUT, sampler_linear_clamp, float2(lut_u, 0.5), 0).rgb;
 }
 
 float gradient_noise(float3 x)
@@ -226,6 +235,14 @@ void ks_rk4(inout float3 x, inout float3 p, float h, float a, float M)
     p += (h / 6.0) * (dp1 + 2.0 * dp2 + 2.0 * dp3 + dp4);
 }
 
+float g_dot(float4 A, float4 B, float f, float3 l)
+{
+    float LA = A.w + dot(l, A.xyz);
+    float LB = B.w + dot(l, B.xyz);
+    
+    return -A.w * B.w + dot(A.xyz, B.xyz) + f * LA * LB;
+}
+
 float3 BH_Render(float3 pos, float3 vel)
 {
     bool hit = false;
@@ -258,30 +275,93 @@ float3 BH_Render(float3 pos, float3 vel)
     
     float ray_len = 0;
 
+    float3 beta = _ObserverVelocity;
+    float3 r_hat = normalize(pos - _BlackHolePos);
+    float3 phi_hat = cross(float3(0, -1, 0), r_hat);
+    phi_hat /= max(length(phi_hat), 1e-4);
+
     #if defined(BH_KERR)
     float a_ks = -a_phys;
 
     float3 kx = unity_to_kerr(pos - _BlackHolePos);
-    float3 n = unity_to_kerr(vel);
 
     float kr0, f0;
     float3 l0;
     ks_metric(kx, a_ks, M, kr0, f0, l0);
     float r_now = kr0;
 
-    float A = -1 - f0;
-    float dotln = dot(l0, n);
-    float B = 2 * f0 * dotln;
-    float C = dot(n, n) - f0 * dotln * dotln;
+    float r2 = kr0 * kr0;
+    float a2 = a_ks * a_ks;
 
-    float disc = sqrt(max(B * B - 4.0 * A * C, 0.0));
-    float pt = min((-B + disc) / (2.0 * A), (-B - disc) / (2.0 * A));
+    float delta = r2 - 2.0 * M * kr0 + a2;
+    float cos_t = kx.z / kr0;
+    float sigma = r2 + a2 * cos_t * cos_t;
+    float big_a = (r2 + a2) * (r2 + a2) - a2 * delta * (1.0 - cos_t * cos_t);
+    float alpha = sqrt(delta * sigma / big_a);
 
-    float3 kp = n / -pt;
+    float sin_t = sqrt(max(1.0 - cos_t * cos_t, 0.0));
+    float omega_orb = sqrtM / (pow(kr0, 1.5) + a_phys * sqrtM);
+    float omega_drag = 2.0 * M * a_phys * kr0 / big_a;
+    float varpi = sqrt(big_a) * sin_t / sqrt(sigma);
+    float v_orb = (omega_orb - omega_drag) * varpi / alpha;
+    float v_fall = sqrt(max(1.0 - alpha * alpha, 0.0));
+    #else
+    float r_c = length(pos - _BlackHolePos);
+    float alpha = sqrt(1.0 - _Rs / r_c);
+    float v_orb = sqrt(M / r_c) * length(r_hat.xz) / alpha;
+    float v_fall = sqrt(_Rs / r_c);
+    #endif
+    
+    int mode = (int)round(_ObserverMode);
+    if (mode == 1) beta = min(v_orb, 0.99) * phi_hat;
+    else if (mode == 2) beta = min(v_fall, 0.99) * -r_hat;
+
+    float beta2 = dot(beta, beta);
+    float gamma_l = 1.0 / sqrt(1.0 - beta2);
+    float bd = dot(beta, vel);
+    float doppler = 1.0 / (gamma_l * (1.0 - bd));
+
+    float3 ab = (vel / gamma_l + beta * (gamma_l * bd / (1.0 + gamma_l) - 1.0)) / (1.0 - bd);
+    vel = normalize(ab);
+
+    #if defined(BH_KERR)
+    float3 n = unity_to_kerr(vel);
+
+    float c_r = 2.0 * M * kr0 / delta;
+    float3 grad_r = float3(kx.x * r2, kx.y * r2, kx.z * (r2 + a2)) / (kr0 * (2.0 * r2 - dot(kx, kx) + a2));
+    float lu = alpha * (1.0 + c_r * dot(l0, grad_r));
+    float4 u = float4(alpha * c_r * grad_r, alpha) - f0 * lu * float4(l0, -1.0);
+
+    float4 e1 = float4(1, 0, 0, 0);
+    e1 += g_dot(e1, u, f0, l0) * u;
+    e1 /= sqrt(g_dot(e1, e1, f0, l0));
+    
+    float4 e2 = float4(0, 1, 0, 0);
+    e2 += g_dot(e2, u, f0, l0) * u;
+    e2 -= g_dot(e2, e1, f0, l0) * e1;
+    e2 /= sqrt(g_dot(e2, e2, f0, l0));
+    
+    float4 e3 = float4(0, 0, 1, 0);
+    e3 += g_dot(e3, u, f0, l0) * u;
+    e3 -= g_dot(e3, e1, f0, l0) * e1;
+    e3 -= g_dot(e3, e2, f0, l0) * e2;
+    e3 /= sqrt(g_dot(e3, e3, f0, l0));
+
+    float4 k = u + n.x * e1 + n.y * e2 + n.z * e3;
+
+    float Lk = k.w + dot(l0, k.xyz);
+    float4 k_low = float4(k.xyz, -k.w) + f0 * Lk * float4(l0, 1.0);
+
+    float3 kp = k_low.xyz / -k_low.w;
     float L_ks = kx.y * kp.x - kx.x * kp.y;
+    
+    float E_cam = u.w - dot(kp, u.xyz);
+    doppler *= E_cam;
     #else
     float L_ks = cross(pos - _BlackHolePos, vel).y;
     float3 J = float3(0, -1, 0) * (M * a_phys);
+
+    doppler /= sqrt(1.0 - _Rs / length(pos - _BlackHolePos));
     #endif
 
     [loop]
@@ -432,13 +512,9 @@ float3 BH_Render(float3 pos, float3 vel)
 
                 float rest_temp = _TempMultiplier * temp_profile;
                 rest_temp *= 1 + _TurbulenceContrast * (2.0 * raw_noise - 1.0);
-                float obs_temp = rest_temp * g;
-
-                float lut_temp = max(obs_temp, _BlackbodyRange.x);
-                float lut_u = log(lut_temp / _BlackbodyRange.x) / log(_BlackbodyRange.y / _BlackbodyRange.x);
-                float3 emission = SAMPLE_TEXTURE2D_LOD(_BlackbodyLUT, sampler_linear_clamp, float2(lut_u, 0.5), 0).rgb *
-                    _BaseColor.rgb;
-
+                float obs_temp = rest_temp * g * doppler;
+                
+                float3 emission = blackbody(obs_temp) * _BaseColor.rgb;
                 emission *= _DiskExposure;
                 
                 float s = 1.0 / (1.41421356 * h);
@@ -459,6 +535,7 @@ float3 BH_Render(float3 pos, float3 vel)
     skyDir = float3(cr * skyDir.x + sr * skyDir.z, skyDir.y, -sr * skyDir.x + cr * skyDir.z);
 
     float3 bg = SAMPLE_TEXTURECUBE_LOD(_SkyTex, sampler_linear_clamp, skyDir, 0).rgb * _SkyIntensity;
+    bg *= blackbody(6500.0 * doppler) / blackbody(6500.0);
     float3 col = hit ? float3(0, 0, 0) : bg;
 
     col = col * (1.0 - diskAlpha) + diskLight;

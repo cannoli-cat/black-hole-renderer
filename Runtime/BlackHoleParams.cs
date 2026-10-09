@@ -7,6 +7,8 @@ namespace CannoliCat.Space {
         public Vector2 tanHalfFov;
         public float pixelAngle;
         public Vector3 blackHolePos;
+        public Vector3 observerVelocity;
+        public int observerMode;
         public float rs, spin, time, noiseScale, diskDensity, twistIntensity;
         public float tempMultiplier, diskThickness, diskOuterRadius, diskExposure, dopplerStrength, temperatureFalloff, turbulenceContrast, filamentSharpness, turbulenceWarp, orbitalStretch, edgeFraying, plungingGas, plungeGlow, escapeRadius, skyIntensity;
         public float skyRotation;
@@ -22,6 +24,8 @@ namespace CannoliCat.Space {
         private static readonly int TanHalfFov = Shader.PropertyToID("_TanHalfFov");
         private static readonly int PixelAngle = Shader.PropertyToID("_PixelAngle");
         private static readonly int BlackHolePos = Shader.PropertyToID("_BlackHolePos");
+        private static readonly int ObserverVelocity = Shader.PropertyToID("_ObserverVelocity");
+        private static readonly int ObserverMode = Shader.PropertyToID("_ObserverMode");
         private static readonly int Rs = Shader.PropertyToID("_Rs");
         private static readonly int Spin = Shader.PropertyToID("_Spin");
         private static readonly int Time = Shader.PropertyToID("_BHTime");
@@ -62,6 +66,8 @@ namespace CannoliCat.Space {
             m.SetVector(TanHalfFov, tanHalfFov);
             m.SetFloat(PixelAngle, pixelAngle);
             m.SetVector(BlackHolePos, blackHolePos);
+            m.SetVector(ObserverVelocity, observerVelocity);
+            m.SetFloat(ObserverMode, observerMode);
             m.SetFloat(Rs, rs);
             m.SetFloat(Spin, spin);
             m.SetFloat(Time, time);
@@ -98,6 +104,8 @@ namespace CannoliCat.Space {
             cmd.SetComputeVectorParam(cs, TanHalfFov, tanHalfFov);
             cmd.SetComputeFloatParam(cs, PixelAngle, pixelAngle);
             cmd.SetComputeVectorParam(cs, BlackHolePos, blackHolePos);
+            cmd.SetComputeVectorParam(cs, ObserverVelocity, observerVelocity);
+            cmd.SetComputeFloatParam(cs, ObserverMode, observerMode);
             cmd.SetComputeFloatParam(cs, Rs, rs);
             cmd.SetComputeFloatParam(cs, Spin, spin);
             cmd.SetComputeFloatParam(cs, Time, time);

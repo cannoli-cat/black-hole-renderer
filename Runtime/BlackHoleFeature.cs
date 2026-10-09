@@ -5,6 +5,7 @@ using UnityEngine.Rendering.Universal;
 namespace CannoliCat.Space {
     public class BlackHoleFeature : ScriptableRendererFeature {
         public enum RayTracingMode { Fast, Exact }
+        public enum ObserverMotion { Manual, Orbiting, Falling }
 
         [Tooltip("Apply copies this preset's values into the settings below. Editing the sliders afterward doesn't change the preset.")]
         public BlackHolePreset preset;
@@ -27,6 +28,13 @@ namespace CannoliCat.Space {
 
         [Range(0f, 0.999f)]
         public float spinParameter = 0.9f;
+
+        [Header("Observer")]
+        [Tooltip("Manual: use Observer Velocity. Orbiting: a circular orbit at the camera's distance, moving with the disk. Falling: dropped from rest far away, falling straight in. The camera must stay outside the horizon.")]
+        public ObserverMotion observerMotion = ObserverMotion.Manual;
+
+        [Tooltip("The camera's velocity as a fraction of the speed of light, in world space, relative to the black hole. Bends the view toward the direction of motion and shifts colors: blue ahead, red behind. Capped at 0.99.")]
+        public Vector3 observerVelocity = Vector3.zero;
 
         [Tooltip("Exact: true Kerr light paths. Fast: Schwarzschild bending with approximate frame dragging, cheaper and recommended for WebGL and mobile.")]
         public RayTracingMode rayTracing = RayTracingMode.Exact;
@@ -218,6 +226,14 @@ namespace CannoliCat.Space {
                 lastTimeFrame = Time.frameCount;
             }
 
+            BlackHole.Active.SchwarzschildRadius = schwarzschildRadius;
+            BlackHole.Active.Spin = spinParameter;
+            BlackHole.Active.SimulatedTime = simulatedTime;
+
+            var motion = observerMotion;
+            if (Application.isPlaying && cam.TryGetComponent(out BlackHoleOrbitCamera orbit) && orbit.isActiveAndEnabled)
+                motion = ObserverMotion.Orbiting;
+
             var t = cam.transform;
             var halfV = Mathf.Tan(cam.fieldOfView * 0.5f * Mathf.Deg2Rad);
             var bhPos = BlackHole.Active.transform.position;
@@ -239,6 +255,8 @@ namespace CannoliCat.Space {
 
                 spin = spinParameter * schwarzschildRadius * 0.5f,
                 exactKerr = rayTracing == RayTracingMode.Exact,
+                observerVelocity = Vector3.ClampMagnitude(observerVelocity, 0.99f),
+                observerMode = (int)motion,
                 time = simulatedTime,
                 noiseScale = noiseScale,
                 diskDensity = diskDensity,
