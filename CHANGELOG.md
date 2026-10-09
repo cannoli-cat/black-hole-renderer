@@ -3,6 +3,12 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [2.2.1]
+
+### Fixed
+- Fine disk detail no longer shimmers far away or in the lensed image above the hole. Noise detail smaller than a pixel now fades out smoothly.
+- A dark notch above the shadow with very thin disks. The disk's gas is now integrated exactly along each ray step instead of sampled at step endpoints, so very thin disks render correctly and match their density settings more closely.
+
 ## [2.2.0]
 
 ### Added

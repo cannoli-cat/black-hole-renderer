@@ -233,6 +233,7 @@ namespace CannoliCat.Space {
                 camRight = camRight,
                 camUp = camUp,
                 tanHalfFov = new Vector2(halfV * cam.aspect, halfV),
+                pixelAngle = 2f * halfV / Mathf.Max(cam.pixelHeight, 1),
                 blackHolePos = bhPos,
                 rs = schwarzschildRadius,
 

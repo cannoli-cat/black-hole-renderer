@@ -23,13 +23,13 @@ MonoBehaviour:
   diskExposure: 18
   dopplerStrength: 0
   temperatureFalloff: 0.6
-  noiseScale: 1
-  evolutionSpeed: 1
+  noiseScale: 0.5
+  evolutionSpeed: 2
   twistIntensity: 0
-  turbulenceContrast: 0.1
-  filamentSharpness: 0.2
-  turbulenceWarp: 0
-  orbitalStretch: 25
+  turbulenceContrast: 0.5
+  filamentSharpness: 0.335
+  turbulenceWarp: 0.331
+  orbitalStretch: 15
   edgeFraying: 0.6
   plungingGas: 0
   plungeGlow: 0

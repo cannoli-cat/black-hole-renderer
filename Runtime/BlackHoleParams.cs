@@ -5,6 +5,7 @@ namespace CannoliCat.Space {
     public struct BlackHoleParams {
         public Vector3 camPos, camForward, camRight, camUp;
         public Vector2 tanHalfFov;
+        public float pixelAngle;
         public Vector3 blackHolePos;
         public float rs, spin, time, noiseScale, diskDensity, twistIntensity;
         public float tempMultiplier, diskThickness, diskOuterRadius, diskExposure, dopplerStrength, temperatureFalloff, turbulenceContrast, filamentSharpness, turbulenceWarp, orbitalStretch, edgeFraying, plungingGas, plungeGlow, escapeRadius, skyIntensity;
@@ -19,6 +20,7 @@ namespace CannoliCat.Space {
         private static readonly int CamRight = Shader.PropertyToID("_CamRight");
         private static readonly int CamUp = Shader.PropertyToID("_CamUp");
         private static readonly int TanHalfFov = Shader.PropertyToID("_TanHalfFov");
+        private static readonly int PixelAngle = Shader.PropertyToID("_PixelAngle");
         private static readonly int BlackHolePos = Shader.PropertyToID("_BlackHolePos");
         private static readonly int Rs = Shader.PropertyToID("_Rs");
         private static readonly int Spin = Shader.PropertyToID("_Spin");
@@ -58,6 +60,7 @@ namespace CannoliCat.Space {
             m.SetVector(CamRight, camRight);
             m.SetVector(CamUp, camUp);
             m.SetVector(TanHalfFov, tanHalfFov);
+            m.SetFloat(PixelAngle, pixelAngle);
             m.SetVector(BlackHolePos, blackHolePos);
             m.SetFloat(Rs, rs);
             m.SetFloat(Spin, spin);
@@ -93,6 +96,7 @@ namespace CannoliCat.Space {
             cmd.SetComputeVectorParam(cs, CamRight, camRight);
             cmd.SetComputeVectorParam(cs, CamUp, camUp);
             cmd.SetComputeVectorParam(cs, TanHalfFov, tanHalfFov);
+            cmd.SetComputeFloatParam(cs, PixelAngle, pixelAngle);
             cmd.SetComputeVectorParam(cs, BlackHolePos, blackHolePos);
             cmd.SetComputeFloatParam(cs, Rs, rs);
             cmd.SetComputeFloatParam(cs, Spin, spin);

@@ -11,7 +11,7 @@ Requires **Unity 6** with **URP** (RenderGraph).
 In Unity, open **Window → Package Manager**, click **+ → Install package from git URL…**, and enter:
 
 ```
-https://github.com/cannoli-cat/black-hole-renderer.git#v2.2.0
+https://github.com/cannoli-cat/black-hole-renderer.git#v2.2.1
 ```
 
 ## Setup

@@ -20,6 +20,7 @@ float3 _CamForward;
 float3 _CamRight;
 float3 _CamUp;
 float2 _TanHalfFov;
+float _PixelAngle;
 
 float3 _BlackHolePos;
 float _Rs;
@@ -53,6 +54,13 @@ float3 hash33(float3 p)
     return frac(float3(p.x * p.y, p.y * p.z, p.z * p.x)) * 2.0 - 1.0;
 }
 
+float erf_approx(float x)
+{
+    float t = 1.0 / (1.0 + 0.3275911 * abs(x));
+    float y = 1.0 - ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * exp(-x * x);
+    return sign(x) * y;
+}
+
 float gradient_noise(float3 x)
 {
     float3 p = floor(x);
@@ -75,40 +83,48 @@ float gradient_noise(float3 x)
         u.z);
 }
 
-float fbm(float3 p)
+float fbm(float3 p, float fp)
 {
     float f = 0.0;
     float amp = 0.5;
+    float freq = 1.0;
     for (int i = 0; i < 4; i++)
     {
-        f += amp * gradient_noise(p);
+        float w = 1.0 - smoothstep(0.25, 0.5, freq * fp);
+        f += amp * w * gradient_noise(p);
         p *= 2.0;
+        freq *= 2.0;
         amp *= 0.5;
     }
     return f;
 }
 
-float ridged_fbm(float3 p)
+float ridged_fbm(float3 p, float fp)
 {
     float f = 0.0;
     float amp = 0.5;
+    float freq = 1.0;
 
     for (int i = 0; i < 4; i++)
     {
+        float w = 1.0 - smoothstep(0.25, 0.5, freq * fp);
         float n = 1.0 - abs(gradient_noise(p));
-        f += amp * n * n;
+        f += amp * lerp(0.74, n * n, w);
         p *= 2.0;
+        freq *= 2.0;
         amp *= 0.5;
     }
 
     return f;
 }
 
-float disk_noise(float2 xz, float pos_y, float angle, float seed)
+float disk_noise(float2 xz, float pos_y, float angle, float seed, float pixel_world)
 {
     float s, c;
     sincos(angle, s, c);
 
+    float fp = pixel_world * _NoiseScale * sqrt(1 + _OrbitalStretch * _OrbitalStretch);
+    
     float2 spiral_xz = float2(xz.x * c - xz.y * s, xz.x * s + xz.y * c);
     float3 noisePos = float3(spiral_xz.x, pos_y * 10.0, spiral_xz.y) * _NoiseScale;
     noisePos.y += seed * 7.31;
@@ -118,8 +134,8 @@ float disk_noise(float2 xz, float pos_y, float angle, float seed)
                          gradient_noise(noisePos + float3(-5.3, 11.9, 0.0)));
     noisePos += _TurbulenceWarp * warp;
 
-    float soft = fbm(noisePos) * 0.5 + 0.5;
-    float sharp = ridged_fbm(noisePos);
+    float soft = fbm(noisePos, fp) * 0.5 + 0.5;
+    float sharp = ridged_fbm(noisePos, fp);
 
     return lerp(soft, sharp, _FilamentSharpness);
 }
@@ -239,6 +255,8 @@ float3 BH_Render(float3 pos, float3 vel)
 
     float seed_a = floor(cycle) * 2.0;
     float seed_b = floor(cycle + 0.5) * 2.0 + 1.0;
+    
+    float ray_len = 0;
 
     #if defined(BH_KERR)
     float a_ks = -a_phys;
@@ -298,6 +316,8 @@ float3 BH_Render(float3 pos, float3 vel)
 
         float dt = length(pos - prev_pos);
         vel = (pos - prev_pos) / max(dt, 1e-6);
+        
+        ray_len += dt;
         #else
         float3 r = pos - _BlackHolePos;
         float r_sq = dot(r, r);
@@ -326,7 +346,11 @@ float3 BH_Render(float3 pos, float3 vel)
 
         vel += (grav + drag) * dt;
         vel = normalize(vel);
+        
+        float3 prev_pos = pos;
         pos += vel * dt;
+        
+        ray_len += dt;
         #endif
 
         if (diskAlpha >= 0.95) continue;
@@ -345,7 +369,9 @@ float3 BH_Render(float3 pos, float3 vel)
             
             float h = _DiskThickness * disk_r;
             float pos_y = rd.y;
-            float vertical = exp(-0.5 * pos_y * pos_y / (h * h));
+            float y0 = prev_pos.y - _BlackHolePos.y;
+            float y_near = y0 * pos_y < 0 ? 0 : min(abs(y0), abs(pos_y));
+            float vertical = exp(-0.5 * y_near * y_near / (h * h));
 
             if (vertical > 0.001)
             {
@@ -381,8 +407,9 @@ float3 BH_Render(float3 pos, float3 vel)
                 float2 xz_a = rd.xz * (r_cyl + v_in * phase_a * WIND_PERIOD) / r_cyl;
                 float2 xz_b = rd.xz * (r_cyl + v_in * phase_b * WIND_PERIOD) / r_cyl;
                 
-                float layer_a = disk_noise(xz_a, pos_y, twist - omega_k * phase_a * WIND_PERIOD, seed_a);
-                float layer_b = disk_noise(xz_b, pos_y, twist - omega_k * phase_b * WIND_PERIOD, seed_b);
+                float pixel_world = ray_len * _PixelAngle;
+                float layer_a = disk_noise(xz_a, pos_y, twist - omega_k * phase_a * WIND_PERIOD, seed_a, pixel_world);
+                float layer_b = disk_noise(xz_b, pos_y, twist - omega_k * phase_b * WIND_PERIOD, seed_b, pixel_world);
                 float raw_noise = layer_a * weight_a + layer_b * weight_b;
                 
                 float fray = _EdgeFraying * x * x;
@@ -413,8 +440,12 @@ float3 BH_Render(float3 pos, float3 vel)
                     _BaseColor.rgb;
 
                 emission *= _DiskExposure;
-
-                float stepAlpha = 1.0 - exp(-(final_density * vertical * _DiskDensity * 10.0) * dt);
+                
+                float s = 1.0 / (1.41421356 * h);
+                float dy = abs(pos_y - y0);
+                float column = dy > 1e-5 ? h * 1.2533141 * abs(erf_approx(pos_y * s) - erf_approx(y0 * s)) * dt / dy : vertical * dt;
+                
+                float stepAlpha = 1.0 - exp(-(final_density * _DiskDensity * 10.0) * column);
                 diskLight += emission * stepAlpha * (1.0 - diskAlpha);
                 diskAlpha += stepAlpha * (1.0 - diskAlpha);
             }
