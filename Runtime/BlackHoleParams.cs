@@ -6,6 +6,7 @@ namespace CannoliCat.Space {
         public Vector3 camPos, camForward, camRight, camUp;
         public Vector2 tanHalfFov;
         public float pixelAngle;
+        public Vector4 hotSpot;
         public float renderScale;
         public Vector3 blackHolePos;
         public Vector3 observerVelocity;
@@ -44,6 +45,7 @@ namespace CannoliCat.Space {
         private static readonly int TurbulenceWarp = Shader.PropertyToID("_TurbulenceWarp");
         private static readonly int OrbitalStretch = Shader.PropertyToID("_OrbitalStretch");
         private static readonly int EdgeFraying = Shader.PropertyToID("_EdgeFraying");
+        private static readonly int HotSpot = Shader.PropertyToID("_HotSpot");
         private static readonly int PlungingGas = Shader.PropertyToID("_PlungingGas");
         private static readonly int PlungeGlow = Shader.PropertyToID("_PlungeGlow");
         private static readonly int EscapeRadius =Shader.PropertyToID("_EscapeRadius");
@@ -86,6 +88,7 @@ namespace CannoliCat.Space {
             m.SetFloat(TurbulenceWarp, turbulenceWarp);
             m.SetFloat(OrbitalStretch, orbitalStretch);
             m.SetFloat(EdgeFraying, edgeFraying);
+            m.SetVector(HotSpot, hotSpot);
             m.SetFloat(PlungingGas, plungingGas);
             m.SetFloat(PlungeGlow, plungeGlow);
             m.SetFloat(EscapeRadius, escapeRadius);
@@ -124,6 +127,7 @@ namespace CannoliCat.Space {
             cmd.SetComputeFloatParam(cs, TurbulenceWarp, turbulenceWarp);
             cmd.SetComputeFloatParam(cs, OrbitalStretch, orbitalStretch);
             cmd.SetComputeFloatParam(cs, EdgeFraying, edgeFraying);
+            cmd.SetComputeVectorParam(cs, HotSpot, hotSpot);
             cmd.SetComputeFloatParam(cs, PlungingGas, plungingGas);
             cmd.SetComputeFloatParam(cs, PlungeGlow, plungeGlow);
             cmd.SetComputeFloatParam(cs, EscapeRadius, escapeRadius);

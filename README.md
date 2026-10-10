@@ -11,7 +11,7 @@ Requires **Unity 6** with **URP** (RenderGraph).
 In Unity, open **Window → Package Manager**, click **+ → Install package from git URL…**, and enter:
 
 ```
-https://github.com/cannoli-cat/black-hole-renderer.git#v2.5.0
+https://github.com/cannoli-cat/black-hole-renderer.git#v2.6.0
 ```
 
 ## Setup
@@ -30,6 +30,7 @@ The renderer feature has a **Preset** field. Assign one and click **Apply** to c
 - **Quasar**: a hotter, brighter, more turbulent disk.
 - **M87**: a thick, dim, orange disk, like the Event Horizon Telescope image.
 - **Interstellar**: a Gargantua-style disk with no Doppler shift, long hair-like streaks and a frayed outer edge.
+- **Flare**: the Realistic disk with an orbiting hot spot, to show its delayed echoes.
 
 Create your own with **Create → CannoliCat → Black Hole Preset**.
 
@@ -50,6 +51,10 @@ Moving fast bends the view toward the direction of motion and shifts colors blue
 To fly a real orbit, add **Black Hole Orbit Camera** to your camera. It moves the camera around the hole at the correct orbital speed, on the same clock as the disk, so the gas beside you keeps pace with you. While it's active, that camera always renders as Orbiting. Raise the disk's **Evolution Speed** or the component's **Speed Multiplier** for a faster orbit.
 
 To fall in, add **Black Hole Fall Camera** instead. It drops the camera from where you placed it, at the correct speed, through the horizon, and stops just short of the center, optionally looping. While it's active, that camera renders as Falling with Exact ray tracing. Set **Look** to **Away** inside the horizon to see the outside universe shrink into a bright patch behind you.
+
+## Hot spot
+
+Raise **Hot Spot Strength** to add a bright blob orbiting in the disk. Light from it reaches the camera along several paths that take different amounts of time, so you see it directly and then again as delayed echoes in the lensed image above the hole and in the photon ring. **Hot Spot Radius** sets its orbit (as a multiple of the innermost stable orbit) and **Hot Spot Size** its size.
 
 ## Disk look
 

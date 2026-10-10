@@ -33,4 +33,7 @@ MonoBehaviour:
   edgeFraying: 0.2
   plungingGas: 0.4
   plungeGlow: 0.3
+  hotSpotStrength: 0
+  hotSpotRadius: 1.5
+  hotSpotSize: 0.25
   diskColorTint: {r: 1, g: 1, b: 1, a: 1}

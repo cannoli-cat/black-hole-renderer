@@ -65,6 +65,16 @@ namespace CannoliCat.Space {
         [Range(0f, 1f)]
         public float plungeGlow = 0.3f;
 
+        [Header("Hot Spot")]
+        [Range(0f, 3f)]
+        public float hotSpotStrength = 0f;
+
+        [Range(1f, 5f)]
+        public float hotSpotRadius = 1.5f;
+
+        [Range(0.05f, 1f)]
+        public float hotSpotSize = 0.25f;
+
         [Header("Color")]
         public Color diskColorTint = Color.white;
     }

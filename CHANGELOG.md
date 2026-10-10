@@ -3,6 +3,13 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [2.6.0]
+
+### Added
+- Light travel time. Each part of the disk is drawn as it was when its light left, so the lensed image above the hole and the photon ring show the gas slightly earlier than the direct view.
+- Hot Spot settings. A bright blob orbits in the disk like the flares seen around Sagittarius A*. Because of the light travel time, its echoes sweep through the lensed image and the photon ring after the direct view.
+- Flare preset: the Realistic disk with a hot spot, to show off the echoes. Presets now save and apply the hot spot settings; the other built-in presets keep it off.
+
 ## [2.5.0]
 
 ### Added

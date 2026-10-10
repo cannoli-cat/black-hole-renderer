@@ -94,6 +94,19 @@ namespace CannoliCat.Space {
         [Tooltip("Temperature of the plunging gas, as a fraction of Max Temperature.")] [Range(0f, 1f)]
         public float plungeGlow = 0.3f;
 
+        [Header("Hot Spot")]
+        [Tooltip("Brightness of a single hot blob orbiting in the disk, like the flares seen around Sagittarius A*. 0 = off. Its light reaches you along several paths with different delays, so it appears again in the lensed image and the photon ring.")]
+        [Range(0f, 3f)]
+        public float hotSpotStrength = 0f;
+
+        [Tooltip("Orbit radius of the hot spot, as a multiple of the innermost stable orbit (ISCO).")]
+        [Range(1f, 5f)]
+        public float hotSpotRadius = 1.5f;
+
+        [Tooltip("Size of the hot spot, as a multiple of the Schwarzschild radius.")]
+        [Range(0.05f, 1f)]
+        public float hotSpotSize = 0.25f;
+
         [Header("Color")]
         public Color diskColorTint = Color.white;
 
@@ -119,6 +132,9 @@ namespace CannoliCat.Space {
             edgeFraying = p.edgeFraying;
             plungingGas = p.plungingGas;
             plungeGlow = p.plungeGlow;
+            hotSpotStrength = p.hotSpotStrength;
+            hotSpotRadius = p.hotSpotRadius;
+            hotSpotSize = p.hotSpotSize;
             diskColorTint = p.diskColorTint;
         }
 
@@ -144,6 +160,9 @@ namespace CannoliCat.Space {
             p.edgeFraying = edgeFraying;
             p.plungingGas = plungingGas;
             p.plungeGlow = plungeGlow;
+            p.hotSpotStrength = hotSpotStrength;
+            p.hotSpotRadius = hotSpotRadius;
+            p.hotSpotSize = hotSpotSize;
             p.diskColorTint = diskColorTint;
         }
 
@@ -284,6 +303,7 @@ namespace CannoliCat.Space {
                 turbulenceWarp = turbulenceWarp,
                 orbitalStretch = orbitalStretch,
                 edgeFraying = edgeFraying,
+                hotSpot = new Vector4(hotSpotStrength, hotSpotRadius, hotSpotSize, 0f),
                 plungingGas = plungingGas,
                 plungeGlow = plungeGlow,
 

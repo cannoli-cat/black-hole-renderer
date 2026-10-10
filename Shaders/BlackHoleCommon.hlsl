@@ -42,6 +42,7 @@ float _FilamentSharpness;
 float _TurbulenceWarp;
 float _OrbitalStretch;
 float _EdgeFraying;
+float4 _HotSpot; // x = strength, y = orbit radius / ISCO, z = size / Rs
 float _PlungingGas;
 float _PlungeGlow;
 float _EscapeRadius;
@@ -184,7 +185,7 @@ void ks_metric(float3 x, float a, float M, out float r, out float f, out float3 
     l = float3(lx, ly, lz);
 }
 
-void ks_deriv(float3 x, float3 p, float a, float M, float E, out float3 dx, out float3 dp)
+void ks_deriv(float3 x, float3 p, float a, float M, float E, out float3 dx, out float3 dp, out float dtdl)
 {
     float r, f;
     float3 l;
@@ -210,30 +211,37 @@ void ks_deriv(float3 x, float3 p, float a, float M, float E, out float3 dx, out 
 
     float3 grad_S = f * k * (k * grad_lnf + 2.0 * grad_k);
     dp = 0.5 * grad_S;
+    
+    dtdl = E + f * k;
 }
 
-void ks_rk4(inout float3 x, inout float3 p, float h, float a, float M, float E)
+void ks_rk4(inout float3 x, inout float3 p, inout float t, float h, float a, float M, float E)
 {
     float3 dx1, dp1;
-    ks_deriv(x, p, a, M, E, dx1, dp1);
+    float dt1;
+    ks_deriv(x, p, a, M, E, dx1, dp1, dt1);
 
     float3 x2 = x + 0.5 * h * dx1;
     float3 p2 = p + 0.5 * h * dp1;
     float3 dx2, dp2;
-    ks_deriv(x2, p2, a, M, E, dx2, dp2);
+    float dt2;
+    ks_deriv(x2, p2, a, M, E, dx2, dp2, dt2);
 
     float3 x3 = x + 0.5 * h * dx2;
     float3 p3 = p + 0.5 * h * dp2;
     float3 dx3, dp3;
-    ks_deriv(x3, p3, a, M, E, dx3, dp3);
+    float dt3;
+    ks_deriv(x3, p3, a, M, E, dx3, dp3, dt3);
 
     float3 x4 = x + h * dx3;
     float3 p4 = p + h * dp3;
     float3 dx4, dp4;
-    ks_deriv(x4, p4, a, M, E, dx4, dp4);
+    float dt4;
+    ks_deriv(x4, p4, a, M, E, dx4, dp4, dt4);
 
     x += (h / 6.0) * (dx1 + 2.0 * dx2 + 2.0 * dx3 + dx4);
     p += (h / 6.0) * (dp1 + 2.0 * dp2 + 2.0 * dp3 + dp4);
+    t += (h / 6.0) * (dt1 + 2.0 * dt2 + 2.0 * dt3 + dt4);
 }
 
 float g_dot(float4 A, float4 B, float f, float3 l)
@@ -279,17 +287,7 @@ float3 BH_Render(float3 pos, float3 vel)
 
     float outerR = _DiskOuterRadius * _Rs;
 
-    float cycle = _BHTime / WIND_PERIOD;
-
-    float phase_a = frac(cycle);
-    float phase_b = frac(cycle + 0.5);
-
-    float weight_a = 1 - abs(2.0 * phase_a - 1.0);
-    float weight_b = 1.0 - weight_a;
-
-    float seed_a = floor(cycle) * 2.0;
-    float seed_b = floor(cycle + 0.5) * 2.0 + 1.0;
-    
+    float t_emit = _BHTime;
     float ray_len = 0;
 
     float3 beta = _ObserverVelocity;
@@ -407,7 +405,11 @@ float3 BH_Render(float3 pos, float3 vel)
     float cached_noise = 0.5;
     float since_noise = 1e9;
     float noise_spacing = 0.1 / (_NoiseScale * sqrt(1.0 + _OrbitalStretch * _OrbitalStretch));
-
+    
+    float r_hs = _HotSpot.y * r_isco;
+    float omega_hs = sqrtM / (pow(r_hs, 1.5) + a_phys * sqrtM);
+    float sigma_hs = _HotSpot.z * _Rs;
+    
     [loop]
     for (int i = 0; i < MAX_STEPS; i++)
     {
@@ -425,7 +427,7 @@ float3 BH_Render(float3 pos, float3 vel)
 
         float3 prev_pos = pos;
         float r_before = r_now;
-        ks_rk4(kx, kp, -ds, a_ks, M, E_ph);
+        ks_rk4(kx, kp, t_emit, -ds, a_ks, M, E_ph);
 
         float f_tmp;
         float3 l_tmp;
@@ -480,6 +482,7 @@ float3 BH_Render(float3 pos, float3 vel)
         vel = normalize(vel + (dt / 6.0) * (a1 + 2.0 * a2 + 2.0 * a3 + a4));
 
         ray_len += dt;
+        t_emit -= dt * (1.0 + _Rs / r1);
         #endif
 
         if (diskAlpha >= 0.95) 
@@ -544,6 +547,17 @@ float3 BH_Render(float3 pos, float3 vel)
 
                 if (since_noise >= noise_spacing)
                 {
+                    float cycle = t_emit / WIND_PERIOD;
+
+                    float phase_a = frac(cycle);
+                    float phase_b = frac(cycle + 0.5);
+
+                    float weight_a = 1 - abs(2.0 * phase_a - 1.0);
+                    float weight_b = 1.0 - weight_a;
+
+                    float seed_a = floor(cycle) * 2.0;
+                    float seed_b = floor(cycle + 0.5) * 2.0 + 1.0;
+                    
                     float r_cyl = length(rd.xz);
                     float2 xz_a = rd.xz * (r_cyl + v_in * phase_a * WIND_PERIOD) / r_cyl;
                     float2 xz_b = rd.xz * (r_cyl + v_in * phase_b * WIND_PERIOD) / r_cyl;
@@ -561,11 +575,18 @@ float3 BH_Render(float3 pos, float3 vel)
                     raw_noise = cached_noise;
                 }
                 
+                float phi_hs = omega_hs * t_emit;
+                float phi = atan2(rd.z, rd.x);
+                float dphi = atan2(sin(phi - phi_hs), cos(phi - phi_hs));
+                float d2 = (disk_r - r_hs) * (disk_r - r_hs) + (r_hs * dphi) * (r_hs * dphi);
+                float hs = exp(-0.5 * d2 / (sigma_hs * sigma_hs)) * step(1e-4, _HotSpot.x);
+                
                 float fray = _EdgeFraying * x * x;
                 float lo = lerp(0.2, 0.7, fray);
                 float hi = lerp(0.8, 0.9, fray);
                 float cloud_mask = pow(smoothstep(lo, hi, raw_noise), 2.0);
                 float final_density = base_density * cloud_mask;
+                final_density = max(final_density, hs * base_density);
 
                 float g = 1.0 / (u_t * pow(max(1.0 - omega_k * L_ks, 1e-4), _DopplerStrength));
 
@@ -580,7 +601,8 @@ float3 BH_Render(float3 pos, float3 vel)
                 }
 
                 float rest_temp = _TempMultiplier * temp_profile;
-                rest_temp *= 1 + _TurbulenceContrast * (2.0 * raw_noise - 1.0);
+                rest_temp *= 1.0 + _TurbulenceContrast * (2.0 * raw_noise - 1.0);
+                rest_temp *= 1.0 + _HotSpot.x * hs;
                 float obs_temp = rest_temp * g * doppler;
                 
                 float3 emission = blackbody(obs_temp) * _BaseColor.rgb;
