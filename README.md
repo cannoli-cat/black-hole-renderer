@@ -2,7 +2,18 @@
 
 A real-time, ray-marched black hole for Unity URP. Gravitational lensing of your skybox, and a spinning accretion disk with blackbody color, a physically based temperature profile, and relativistic Doppler and gravitational redshift.
 
-![Black hole with the M87 preset](Documentation~/black-hole.gif)
+<table>
+  <tr>
+    <td><img src="Documentation~/interstellar.gif" alt="Interstellar preset"></td>
+    <td><img src="Documentation~/m87.gif" alt="M87 preset"></td>
+    <td><img src="Documentation~/sgra.gif" alt="Sgr A preset"></td>
+  </tr>
+  <tr>
+    <td align="center">Interstellar</td>
+    <td align="center">M87</td>
+    <td align="center">Sgr A</td>
+  </tr>
+</table>
 
 ## Installation
 
