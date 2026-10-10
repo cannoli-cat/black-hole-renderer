@@ -6,7 +6,7 @@ namespace CannoliCat.Space {
         public const int Period = 16;
         private const int TexelsPerCell = 8;
         private const int Size = Period * TexelsPerCell;
-        private const string TextureName = "BlackHoleNoise";
+        private const string TextureName = "BlackHoleNoiseRG";
 
         private static Texture3D cached;
 
@@ -66,7 +66,7 @@ namespace CannoliCat.Space {
         private static Texture3D Build() {
             var g1 = Gradients(Period, 1337);
             var g2 = Gradients(Period * 2, 7331);
-            var values = new float[Size * Size * Size];
+            var values = new float[Size * Size * Size * 2];
 
             void Slice(int z) {
                 for (var y = 0; y < Size; y++) {
@@ -74,8 +74,10 @@ namespace CannoliCat.Space {
                         var px = (x + 0.5f) / TexelsPerCell;
                         var py = (y + 0.5f) / TexelsPerCell;
                         var pz = (z + 0.5f) / TexelsPerCell;
-                        values[(z * Size + y) * Size + x] = Gradient(g1, Period, px, py, pz)
-                            + 0.5f * Gradient(g2, Period * 2, 2f * px, 2f * py, 2f * pz);
+                        var one = Gradient(g1, Period, px, py, pz);
+                        var idx = 2 * ((z * Size + y) * Size + x);
+                        values[idx] = one + 0.5f * Gradient(g2, Period * 2, 2f * px, 2f * py, 2f * pz);
+                        values[idx + 1] = one;
                     }
                 }
             }
@@ -89,7 +91,7 @@ namespace CannoliCat.Space {
             var halves = new ushort[values.Length];
             for (var i = 0; i < values.Length; i++) halves[i] = Mathf.FloatToHalf(values[i]);
 
-            var tex = new Texture3D(Size, Size, Size, TextureFormat.RHalf, mipChain: false) {
+            var tex = new Texture3D(Size, Size, Size, TextureFormat.RGHalf, mipChain: false) {
                 wrapMode = TextureWrapMode.Repeat,
                 filterMode = FilterMode.Bilinear,
                 name = TextureName,

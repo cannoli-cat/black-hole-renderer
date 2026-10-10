@@ -3,6 +3,11 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [2.8.1]
+
+### Changed
+- The disk turbulence reads a precomputed noise texture instead of computing noise, which saves about 1.4 ms per frame at 1080p with the disk presets. The gas looks the same, but its filaments and gaps are in different places than before.
+
 ## [2.8.0]
 
 ### Added

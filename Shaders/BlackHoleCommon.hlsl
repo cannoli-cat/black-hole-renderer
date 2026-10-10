@@ -62,13 +62,6 @@ float _SkyIntensity;
 float _SkyRotation;
 float4 _BaseColor;
 
-float3 hash33(float3 p)
-{
-    p = frac(p * float3(443.8975, 397.2973, 491.1871));
-    p += dot(p, p.yxz + 19.19);
-    return frac(float3(p.x * p.y, p.y * p.z, p.z * p.x)) * 2.0 - 1.0;
-}
-
 float erf_approx(float x)
 {
     float t = 1.0 / (1.0 + 0.3275911 * abs(x));
@@ -83,31 +76,14 @@ float3 blackbody(float T)
     return SAMPLE_TEXTURE2D_LOD(_BlackbodyLUT, sampler_linear_clamp, float2(lut_u, 0.5), 0).rgb;
 }
 
-float gradient_noise(float3 x)
-{
-    float3 p = floor(x);
-    float3 f = frac(x);
-    float3 u = f * f * (3.0 - 2.0 * f);
-
-    return lerp(
-        lerp(
-            lerp(dot(hash33(p + float3(0, 0, 0)), f - float3(0, 0, 0)),
-                 dot(hash33(p + float3(1, 0, 0)), f - float3(1, 0, 0)), u.x),
-            lerp(dot(hash33(p + float3(0, 1, 0)), f - float3(0, 1, 0)),
-                 dot(hash33(p + float3(1, 1, 0)), f - float3(1, 1, 0)), u.x),
-            u.y),
-        lerp(
-            lerp(dot(hash33(p + float3(0, 0, 1)), f - float3(0, 0, 1)),
-                 dot(hash33(p + float3(1, 0, 1)), f - float3(1, 0, 1)), u.x),
-            lerp(dot(hash33(p + float3(0, 1, 1)), f - float3(0, 1, 1)),
-                 dot(hash33(p + float3(1, 1, 1)), f - float3(1, 1, 1)), u.x),
-            u.y),
-        u.z);
-}
-
 float noise_tex(float3 q)
 {
     return SAMPLE_TEXTURE3D_LOD(_NoiseTex, sampler_linear_repeat, q / NOISE_PERIOD, 0).r;
+}
+
+float noise1_tex(float3 q)
+{
+    return SAMPLE_TEXTURE3D_LOD(_NoiseTex, sampler_linear_repeat, q / NOISE_PERIOD, 0).g;
 }
 
 // fbm & ridged
@@ -124,7 +100,7 @@ void fbm_both(float3 p, float fp, out float soft, out float sharp)
 
         if (w > 0.0)
         {
-            float g = gradient_noise(p);
+            float g = noise1_tex(p + i * float3(5.31, 1.73, 9.17));
             soft += amp * w * g;
 
             float n = 1.0 - abs(g);
@@ -157,8 +133,7 @@ float disk_noise(float2 xz, float pos_y, float angle, float seed, float pixel_wo
     
     if (_TurbulenceWarp > 0)
     {
-        float3 warp = float3(gradient_noise(noisePos + float3(17.1, 3.7, 0.0)), 0.0,
-                             gradient_noise(noisePos + float3(-5.3, 11.9, 0.0)));
+        float3 warp = float3(noise1_tex(noisePos + float3(17.1, 3.7, 0.0)), 0.0, noise1_tex(noisePos + float3(-5.3, 11.9, 0.0)));
         noisePos += _TurbulenceWarp * warp;
     }
 
