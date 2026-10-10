@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d22354386e4147a7b26b5d88f845b765, type: 3}
+  m_Name: Sgr A
+  m_EditorClassIdentifier: 
+  skyIntensity: 0.5
+  schwarzschildRadius: 2
+  spinParameter: 0.9
+  rayTracing: 1
+  diskThickness: 0.15
+  diskOuterRadius: 8
+  maxTemperature: 7000
+  diskDensity: 0
+  diskExposure: 8.0
+  dopplerStrength: 1
+  temperatureFalloff: 0.5
+  noiseScale: 0.4
+  evolutionSpeed: 3
+  twistIntensity: 0.5
+  turbulenceContrast: 0.25
+  filamentSharpness: 0.3
+  turbulenceWarp: 0.6
+  orbitalStretch: 1
+  edgeFraying: 0
+  plungingGas: 0.5
+  plungeGlow: 0.3
+  hotSpotStrength: 0
+  hotSpotRadius: 1.5
+  hotSpotSize: 0.25
+  jetBrightness: 0
+  jetSpeed: 0.9
+  jetWidth: 0.3
+  jetLength: 40
+  jetKnots: 0.4
+  jetTurbulence: 0.6
+  jetColor: {r: 0.7, g: 0.8, b: 1, a: 1}
+  hotFlowBrightness: 3
+  hotFlowThickness: 1
+  hotFlowFalloff: 3
+  hotFlowOpacity: 0
+  hotFlowTurbulence: 0.8
+  hotFlowTemperature: 5000
+  hotFlowColor: {r: 1, g: 0.5, b: 0.15, a: 1}
+  diskColorTint: {r: 1, g: 0.6039216, b: 0.2509804, a: 1}

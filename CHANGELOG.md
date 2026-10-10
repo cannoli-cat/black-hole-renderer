@@ -3,6 +3,17 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [2.8.0]
+
+### Added
+- Hot Flow settings, off by default. Hot Flow Brightness, Thickness, Falloff, Opacity, Turbulence, Temperature and Color add a hot, puffy, see-through flow around the hole, the kind of flow M87* and Sagittarius A* have, instead of (or alongside) the thin disk. Its light piles up near the photon orbit into the bright ring seen in the Event Horizon Telescope images, brighter on the side where the gas comes toward you. The gas orbits correctly off the disk plane, including frame dragging in Exact mode, and the turbulence orbits and shears with it.
+- Hot Flow Temperature colors the flow by temperature like the disk: hottest near the hole, whiter where gas moves toward you and redder where it moves away. At 0 the flow uses Hot Flow Color.
+- M87 EHT preset: M87* as astronomers model it, a turbulent hot flow with a faint jet and no thin disk. The original M87 preset is unchanged.
+- Sgr A preset: Sagittarius A*, the black hole at the center of the Milky Way, with a thicker, faster-flickering hot flow and no jet.
+
+### Changed
+- The jet turbulence reads a precomputed noise texture instead of computing noise, which makes it cheaper. Its pattern looks slightly different; its size and motion are the same.
+
 ## [2.7.0]
 
 ### Added

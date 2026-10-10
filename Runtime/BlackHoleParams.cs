@@ -11,6 +11,10 @@ namespace CannoliCat.Space {
         public float jetKnots;
         public float jetTurbulence;
         public Color jetColor;
+        public Vector4 hotFlow;
+        public float hotFlowTurbulence;
+        public float hotFlowTemperature;
+        public Color hotFlowColor;
         public float renderScale;
         public Vector3 blackHolePos;
         public Vector3 observerVelocity;
@@ -22,6 +26,7 @@ namespace CannoliCat.Space {
         public bool exactKerr;
         public Cubemap skyTexture;
         public Texture2D blackbodyLut;
+        public Texture3D noiseTexture;
 
         private static readonly int CamPos = Shader.PropertyToID("_CamPos");
         private static readonly int CamForward = Shader.PropertyToID("_CamForward");
@@ -54,6 +59,10 @@ namespace CannoliCat.Space {
         private static readonly int JetKnots = Shader.PropertyToID("_JetKnots");
         private static readonly int JetTurbulence = Shader.PropertyToID("_JetTurbulence");
         private static readonly int JetColor = Shader.PropertyToID("_JetColor");
+        private static readonly int HotFlow = Shader.PropertyToID("_HotFlow");
+        private static readonly int HotFlowColor = Shader.PropertyToID("_HotFlowColor");
+        private static readonly int HotFlowTurbulence = Shader.PropertyToID("_HotFlowTurbulence");
+        private static readonly int HotFlowTemperature = Shader.PropertyToID("_HotFlowTemperature");
         private static readonly int PlungingGas = Shader.PropertyToID("_PlungingGas");
         private static readonly int PlungeGlow = Shader.PropertyToID("_PlungeGlow");
         private static readonly int EscapeRadius =Shader.PropertyToID("_EscapeRadius");
@@ -63,6 +72,7 @@ namespace CannoliCat.Space {
         private static readonly int BlackbodyRange = Shader.PropertyToID("_BlackbodyRange");
         public static readonly int SkyTex = Shader.PropertyToID("_SkyTex");
         public static readonly int BlackbodyLutTex = Shader.PropertyToID("_BlackbodyLUT");
+        public static readonly int NoiseTex = Shader.PropertyToID("_NoiseTex");
         public const string KerrKeyword = "BH_KERR";
 
         private static readonly Vector4 BlackbodyRangeValue =
@@ -101,6 +111,10 @@ namespace CannoliCat.Space {
             m.SetFloat(JetKnots, jetKnots);
             m.SetFloat(JetTurbulence, jetTurbulence);
             m.SetColor(JetColor, jetColor);
+            m.SetVector(HotFlow, hotFlow);
+            m.SetColor(HotFlowColor, hotFlowColor);
+            m.SetFloat(HotFlowTurbulence, hotFlowTurbulence);
+            m.SetFloat(HotFlowTemperature, hotFlowTemperature);
             m.SetFloat(PlungingGas, plungingGas);
             m.SetFloat(PlungeGlow, plungeGlow);
             m.SetFloat(EscapeRadius, escapeRadius);
@@ -110,6 +124,7 @@ namespace CannoliCat.Space {
             m.SetVector(BlackbodyRange, BlackbodyRangeValue);
             if (skyTexture != null) m.SetTexture(SkyTex, skyTexture);
             if (blackbodyLut != null) m.SetTexture(BlackbodyLutTex, blackbodyLut);
+            if (noiseTexture != null) m.SetTexture(NoiseTex, noiseTexture);
         }
 
         public void ApplyToCompute(ComputeCommandBuffer cmd, ComputeShader cs) {
@@ -144,6 +159,10 @@ namespace CannoliCat.Space {
             cmd.SetComputeFloatParam(cs, JetKnots, jetKnots);
             cmd.SetComputeFloatParam(cs, JetTurbulence, jetTurbulence);
             cmd.SetComputeVectorParam(cs, JetColor, jetColor);
+            cmd.SetComputeVectorParam(cs, HotFlow, hotFlow);
+            cmd.SetComputeVectorParam(cs, HotFlowColor, hotFlowColor);
+            cmd.SetComputeFloatParam(cs, HotFlowTurbulence, hotFlowTurbulence);
+            cmd.SetComputeFloatParam(cs, HotFlowTemperature, hotFlowTemperature);
             cmd.SetComputeFloatParam(cs, PlungingGas, plungingGas);
             cmd.SetComputeFloatParam(cs, PlungeGlow, plungeGlow);
             cmd.SetComputeFloatParam(cs, EscapeRadius, escapeRadius);

@@ -11,7 +11,11 @@ static const float WIND_PERIOD = 40.0;
 
 TEXTURECUBE(_SkyTex);
 TEXTURE2D(_BlackbodyLUT);
+TEXTURE3D(_NoiseTex);
 SamplerState sampler_linear_clamp;
+SamplerState sampler_linear_repeat;
+
+static const float NOISE_PERIOD = 16.0; // must match NoiseTexture.Period
 
 float2 _BlackbodyRange;
 
@@ -47,6 +51,10 @@ float4 _Jet; // x = brightness, y = speed (fraction of c), z = width / Rs, w = l
 float _JetKnots;
 float _JetTurbulence;
 float4 _JetColor;
+float4 _HotFlow; // x = brightness, y = thickness, z = falloff exponent, w = opacity
+float4 _HotFlowColor;
+float _HotFlowTurbulence;
+float _HotFlowTemperature; // Kelvin at r = Rs; 0 = use _HotFlowColor
 float _PlungingGas;
 float _PlungeGlow;
 float _EscapeRadius;
@@ -95,6 +103,11 @@ float gradient_noise(float3 x)
                  dot(hash33(p + float3(1, 1, 1)), f - float3(1, 1, 1)), u.x),
             u.y),
         u.z);
+}
+
+float noise_tex(float3 q)
+{
+    return SAMPLE_TEXTURE3D_LOD(_NoiseTex, sampler_linear_repeat, q / NOISE_PERIOD, 0).r;
 }
 
 // fbm & ridged
@@ -415,6 +428,8 @@ float3 BH_Render(float3 pos, float3 vel)
     float sigma_hs = _HotSpot.z * _Rs;
     
     float3 jetLight = 0;
+    float3 flowLight = 0;
+    float flowTrans = 1;
     
     [loop]
     for (int i = 0; i < MAX_STEPS; i++)
@@ -544,11 +559,98 @@ float3 BH_Render(float3 pos, float3 vel)
                 float3 q = float3(rot.x / jw, flow / (3.0 * jw), rot.y / jw) * 2.0;
                 q.y += sign(rel.y) * 17.0;
             
-                float jn = 0.5 + 0.5 * (gradient_noise(q) + 0.5 * gradient_noise(q * 2.0));
+                float jn = 0.5 + 0.5 * noise_tex(q);
                 j *= lerp(1.0, saturate(jn) * 2.0, _JetTurbulence);
             }
             
             jetLight += j * _JetColor.rgb * dt * (1.0 - diskAlpha);
+        }
+        
+        if (_HotFlow.x > 0)
+        {
+            #if defined(BH_KERR)
+            
+            float fr = r_now;
+            float cos_th = kx.z / r_now;
+            
+            float4 T = float4(0.0, 0.0, 0.0, 1.0);
+            float4 P = float4(-kx.y, kx.x, 0.0, 0.0);
+            
+            float g_tt = g_dot(T, T, f_tmp, l_tmp);
+            float g_tphi = g_dot(T, P, f_tmp, l_tmp);
+            float g_phiphi = g_dot(P, P, f_tmp, l_tmp);
+            
+            #else
+            
+            float3 rel = pos - _BlackHolePos;
+            float fr = length(rel);
+            float cos_th = rel.y / fr;
+            
+            float g_tt = -(1.0 - _Rs / fr);
+            float g_tphi = 0.0;
+            float rcyl = length(rel.xz);
+            float g_phiphi = rcyl * rcyl;
+            
+            #endif
+
+            float H = _HotFlow.y;
+            float rho = pow(fr / _Rs, -_HotFlow.z)
+                      * exp(-0.5 * cos_th * cos_th / (H * H))
+                      * (1.0 - smoothstep(0.7, 1.0, fr / outerR));
+            
+            float r_orb = max(fr, r_isco);
+            float ell = sqrtM * (r_orb * r_orb - 2.0 * a_phys * sqrt(M * r_orb) + (a_phys * a_phys)) / (pow(r_orb, 1.5) - 2.0 * M * sqrt(r_orb) + a_phys * sqrtM) * (1.0 - cos_th * cos_th);
+            float omega = -(g_tphi + ell * g_tt) / max(g_phiphi + ell * g_tphi, 1e-6 * _Rs * _Rs);
+            
+            float nn = -(g_tt + 2.0 * omega * g_tphi + omega * omega * g_phiphi);
+            
+            if (nn > 1e-6)
+            {
+                float u_t = 1.0 / sqrt(nn);
+                float g = doppler / (u_t * max(1.0 - omega * L_ks, 1e-4));
+                float g2 = g * g;
+                
+                if (_HotFlowTurbulence > 0 && rho > 1e-4)
+                {
+                    float cycle = t_emit / WIND_PERIOD;
+
+                    float phase_a = frac(cycle);
+                    float phase_b = frac(cycle + 0.5);
+
+                    float weight_a = 1 - abs(2.0 * phase_a - 1.0);
+                    float weight_b = 1.0 - weight_a;
+
+                    float seed_a = floor(cycle) * 2.0;
+                    float seed_b = floor(cycle + 0.5) * 2.0 + 1.0;
+                    
+                    float3 frel = pos - _BlackHolePos;
+
+                    float s_a, c_a;
+                    sincos(-omega * phase_a * WIND_PERIOD, s_a, c_a);
+                    float3 rot_a = float3(frel.x * c_a - frel.z * s_a, frel.y, frel.x * s_a + frel.z * c_a);
+                    
+                    float s_b, c_b;
+                    sincos(-omega * phase_b * WIND_PERIOD, s_b, c_b);
+                    float3 rot_b = float3(frel.x * c_b - frel.z * s_b, frel.y, frel.x * s_b + frel.z * c_b);
+                    
+                    float3 q_a = 3.0 * (rot_a / fr) + float3(0.0, 3.0 * log(fr / _Rs) + seed_a * 7.31, 0.0);
+                    float n_a = saturate(0.5 + 0.5 * noise_tex(q_a));
+                    
+                    float3 q_b = 3.0 * (rot_b / fr) + float3(0.0, 3.0 * log(fr / _Rs) + seed_b * 7.31, 0.0);
+                    float n_b = saturate(0.5 + 0.5 * noise_tex(q_b));
+                    
+                    float n = n_a * weight_a + n_b * weight_b;
+                    rho *= lerp(1.0, 4.0 * n * n, _HotFlowTurbulence);
+                }
+                
+                float T_obs = _HotFlowTemperature * sqrt(_Rs / fr) * g;
+                float3 bb = blackbody(T_obs);
+                float3 hue = bb / max(dot(bb, float3(0.2126, 0.7152, 0.0722)), 1e-6);
+                float3 flowColor = _HotFlowTemperature > 0 ? hue : _HotFlowColor.rgb;
+                
+                flowLight += _HotFlow.x * rho * g2 * g * (dt / _Rs) * flowColor * flowTrans * (1.0 - diskAlpha);
+                flowTrans *= exp(-_HotFlow.w * rho * dt / _Rs);
+            }
         }
 
         if (diskAlpha >= 0.95) 
@@ -703,7 +805,7 @@ float3 BH_Render(float3 pos, float3 vel)
     bg *= blackbody(6500.0 * doppler) / blackbody(6500.0);
     float3 col = hit ? float3(0, 0, 0) : bg;
 
-    col = col * (1.0 - diskAlpha) + diskLight + jetLight;
+    col = col * (1.0 - diskAlpha) * flowTrans + diskLight + jetLight + flowLight;
 
     return col;
 }

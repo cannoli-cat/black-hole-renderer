@@ -96,6 +96,27 @@ namespace CannoliCat.Space {
 
         public Color jetColor = new Color(0.7f, 0.8f, 1f);
 
+        [Header("Hot Flow")]
+        [Range(0f, 5f)]
+        public float hotFlowBrightness = 0f;
+
+        [Range(0.1f, 2f)]
+        public float hotFlowThickness = 0.7f;
+
+        [Range(1f, 5f)]
+        public float hotFlowFalloff = 3f;
+
+        [Range(0f, 1f)]
+        public float hotFlowOpacity = 0f;
+
+        [Range(0f, 1f)]
+        public float hotFlowTurbulence = 0.6f;
+
+        [Range(0f, 20000f)]
+        public float hotFlowTemperature = 0f;
+
+        public Color hotFlowColor = new Color(1f, 0.5f, 0.15f);
+
         [Header("Color")]
         public Color diskColorTint = Color.white;
     }

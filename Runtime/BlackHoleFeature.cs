@@ -135,6 +135,34 @@ namespace CannoliCat.Space {
         [Tooltip("Color of the jet's glow. Jets shine by synchrotron light, which is bluish white rather than a blackbody color.")]
         public Color jetColor = new Color(0.7f, 0.8f, 1f);
 
+        [Header("Hot Flow")]
+        [Tooltip("Brightness of a hot, puffy, see-through flow around the hole, like M87* and Sgr A* in the Event Horizon Telescope images. 0 = off. Set Disk Density to 0 for the pure EHT look, or keep both for a disk with a hot corona.")]
+        [Range(0f, 5f)]
+        public float hotFlowBrightness = 0f;
+
+        [Tooltip("Thickness of the flow. Small values hug the disk plane; large values make it nearly spherical.")]
+        [Range(0.1f, 2f)]
+        public float hotFlowThickness = 0.7f;
+
+        [Tooltip("How fast the glow falls off with distance from the hole. Higher values concentrate the light near the photon ring.")]
+        [Range(1f, 5f)]
+        public float hotFlowFalloff = 3f;
+
+        [Tooltip("How much the flow absorbs light passing through it, including its own. 0 = fully transparent.")]
+        [Range(0f, 1f)]
+        public float hotFlowOpacity = 0f;
+
+        [Tooltip("How lumpy the flow is: clumps of gas that orbit with it and slowly churn. 0 = smooth.")]
+        [Range(0f, 1f)]
+        public float hotFlowTurbulence = 0.6f;
+
+        [Tooltip("Colors the flow by temperature, like the disk: hottest near the hole, whiter where gas moves toward you and redder where it moves away. 0 = use Hot Flow Color instead. The real light is radio, so this shows how the flow would look if it glowed in visible light.")]
+        [Range(0f, 20000f)]
+        public float hotFlowTemperature = 0f;
+
+        [Tooltip("Color of the flow's glow when Hot Flow Temperature is 0. The real light is radio, so any color is a choice; the EHT images use orange.")]
+        public Color hotFlowColor = new Color(1f, 0.5f, 0.15f);
+
         [Header("Color")]
         public Color diskColorTint = Color.white;
 
@@ -170,6 +198,13 @@ namespace CannoliCat.Space {
             jetKnots = p.jetKnots;
             jetTurbulence = p.jetTurbulence;
             jetColor = p.jetColor;
+            hotFlowBrightness = p.hotFlowBrightness;
+            hotFlowThickness = p.hotFlowThickness;
+            hotFlowFalloff = p.hotFlowFalloff;
+            hotFlowOpacity = p.hotFlowOpacity;
+            hotFlowTurbulence = p.hotFlowTurbulence;
+            hotFlowTemperature = p.hotFlowTemperature;
+            hotFlowColor = p.hotFlowColor;
             diskColorTint = p.diskColorTint;
         }
 
@@ -205,6 +240,13 @@ namespace CannoliCat.Space {
             p.jetKnots = jetKnots;
             p.jetTurbulence = jetTurbulence;
             p.jetColor = jetColor;
+            p.hotFlowBrightness = hotFlowBrightness;
+            p.hotFlowThickness = hotFlowThickness;
+            p.hotFlowFalloff = hotFlowFalloff;
+            p.hotFlowOpacity = hotFlowOpacity;
+            p.hotFlowTurbulence = hotFlowTurbulence;
+            p.hotFlowTemperature = hotFlowTemperature;
+            p.hotFlowColor = hotFlowColor;
             p.diskColorTint = diskColorTint;
         }
 
@@ -350,6 +392,10 @@ namespace CannoliCat.Space {
                 jetKnots = jetKnots,
                 jetTurbulence = jetTurbulence,
                 jetColor = jetColor,
+                hotFlow = new Vector4(hotFlowBrightness, hotFlowThickness, hotFlowFalloff, hotFlowOpacity),
+                hotFlowTurbulence = hotFlowTurbulence,
+                hotFlowTemperature = hotFlowTemperature,
+                hotFlowColor = hotFlowColor,
                 plungingGas = plungingGas,
                 plungeGlow = plungeGlow,
                 
@@ -364,7 +410,8 @@ namespace CannoliCat.Space {
                 skyRotation = GetSkyboxRotation(),
                 baseColor = diskColorTint,
                 skyTexture = GetSkyboxCubemap(),
-                blackbodyLut = blackbodyLut
+                blackbodyLut = blackbodyLut,
+                noiseTexture = NoiseTexture.Get()
             };
 
             if (useCompute) {

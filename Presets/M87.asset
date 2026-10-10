@@ -43,4 +43,11 @@ MonoBehaviour:
   jetKnots: 0.4
   jetTurbulence: 0.6
   jetColor: {r: 0.7, g: 0.8, b: 1, a: 1}
+  hotFlowBrightness: 0
+  hotFlowThickness: 0.7
+  hotFlowFalloff: 3
+  hotFlowOpacity: 0
+  hotFlowTurbulence: 0.6
+  hotFlowTemperature: 0
+  hotFlowColor: {r: 1, g: 0.5, b: 0.15, a: 1}
   diskColorTint: {r: 1, g: 0.6039216, b: 0.2509804, a: 1}

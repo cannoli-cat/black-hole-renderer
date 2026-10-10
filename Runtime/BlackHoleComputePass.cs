@@ -43,6 +43,8 @@ namespace CannoliCat.Space {
                 cs.SetTexture(0, BlackHoleParams.SkyTex, settings.skyTexture);
             if (settings.blackbodyLut != null)
                 cs.SetTexture(0, BlackHoleParams.BlackbodyLutTex, settings.blackbodyLut);
+            if (settings.noiseTexture != null)
+                cs.SetTexture(0, BlackHoleParams.NoiseTex, settings.noiseTexture);
             cs.SetKeyword(new LocalKeyword(cs, BlackHoleParams.KerrKeyword), settings.exactKerr);
             
             var scale = compositeMaterial != null ? Mathf.Clamp(settings.renderScale, 0.25f, 1f) : 1f;

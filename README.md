@@ -31,6 +31,8 @@ The renderer feature has a **Preset** field. Assign one and click **Apply** to c
 - **M87**: a thick, dim, orange disk, like the Event Horizon Telescope image.
 - **Interstellar**: a Gargantua-style disk with no Doppler shift, long hair-like streaks and a frayed outer edge.
 - **Flare**: the Realistic disk with an orbiting hot spot, to show its delayed echoes.
+- **M87 EHT**: M87* as astronomers model it: no thin disk, just a hot, see-through, turbulent flow that glows into a bright ring at the photon orbit, plus a faint jet. Look at it from about 17° off the spin axis for the Event Horizon Telescope view.
+- **Sgr A**: Sgr A*, the black hole at the center of the Milky Way: a thicker, faster-flickering hot flow and no jet. The Event Horizon Telescope image suggests we see it from within about 30° of its spin axis.
 
 Create your own with **Create → CannoliCat → Black Hole Preset**.
 
@@ -59,6 +61,18 @@ Raise **Hot Spot Strength** to add a bright blob orbiting in the disk. Light fro
 ## Jets
 
 Raise **Jet Brightness** to add relativistic jets along the spin axis, like M87's. **Jet Speed** sets how close to the speed of light the material moves: faster jets look more one-sided, because the jet coming toward you is boosted and the other is dimmed. **Jet Knots** breaks the jet into bright blobs that travel outward; seen from close to the jet's axis they can appear to move faster than light. The jets are lensed by the black hole like everything else.
+
+## Hot flow
+
+Raise **Hot Flow Brightness** to add a hot, puffy, see-through flow around the hole, the kind M87* and Sagittarius A* really have. It glows all around the hole, and the light that skims the photon orbit piles up into a bright, thin ring, brighter on the side where the gas comes toward you. Set **Disk Density** to 0 for the pure Event Horizon Telescope look, or keep the disk for a disk with a hot corona.
+
+- **Thickness**: low values hug the disk plane and leave a deep dark center; high values make the flow nearly round and fill the shadow with glowing gas in front of it.
+- **Falloff**: how fast the glow fades with distance. Higher values concentrate the light near the ring.
+- **Opacity**: how much the flow absorbs light passing through it.
+- **Turbulence**: clumps that orbit with the gas, shear into spirals and slowly change, so the ring flickers.
+- **Temperature**: colors the flow like the disk, hottest near the hole, whiter where gas moves toward you and redder where it moves away. At 0 the flow uses **Color** instead. The real light is radio waves, so this shows how the flow would look if it glowed in visible light.
+
+For the view in the Event Horizon Telescope image of M87*, use the **M87 EHT** preset and place the camera about 17° from the spin axis (the black hole's local Y axis), looking at the hole. Roll the camera so the bright side is at the bottom.
 
 ## Disk look
 
