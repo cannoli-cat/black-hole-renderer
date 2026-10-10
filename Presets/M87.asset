@@ -36,4 +36,11 @@ MonoBehaviour:
   hotSpotStrength: 0
   hotSpotRadius: 1.5
   hotSpotSize: 0.25
+  jetBrightness: 4
+  jetSpeed: 0.9
+  jetWidth: 0.3
+  jetLength: 40
+  jetKnots: 0.4
+  jetTurbulence: 0.6
+  jetColor: {r: 0.7, g: 0.8, b: 1, a: 1}
   diskColorTint: {r: 1, g: 0.6039216, b: 0.2509804, a: 1}

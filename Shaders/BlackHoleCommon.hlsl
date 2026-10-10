@@ -43,6 +43,10 @@ float _TurbulenceWarp;
 float _OrbitalStretch;
 float _EdgeFraying;
 float4 _HotSpot; // x = strength, y = orbit radius / ISCO, z = size / Rs
+float4 _Jet; // x = brightness, y = speed (fraction of c), z = width / Rs, w = length / Rs
+float _JetKnots;
+float _JetTurbulence;
+float4 _JetColor;
 float _PlungingGas;
 float _PlungeGlow;
 float _EscapeRadius;
@@ -410,6 +414,8 @@ float3 BH_Render(float3 pos, float3 vel)
     float omega_hs = sqrtM / (pow(r_hs, 1.5) + a_phys * sqrtM);
     float sigma_hs = _HotSpot.z * _Rs;
     
+    float3 jetLight = 0;
+    
     [loop]
     for (int i = 0; i < MAX_STEPS; i++)
     {
@@ -423,6 +429,13 @@ float3 BH_Render(float3 pos, float3 vel)
         if (diskAlpha < 0.95 && r_now < (_DiskOuterRadius + 2.0) * _Rs)
         {
             ds = min(ds, max(abs(pos.y - _BlackHolePos.y) * 0.8, 0.3 * _DiskThickness * r_now));
+        }
+        
+        if (_Jet.x > 0)
+        {
+            float jy0 = abs(pos.y - _BlackHolePos.y);
+            float jw0 = _Jet.z * _Rs * sqrt(max(jy0, _Rs) / _Rs);
+            if (length((pos - _BlackHolePos).xz) < 3.0 * jw0) ds = min(ds, 0.5 * jw0);
         }
 
         float3 prev_pos = pos;
@@ -461,6 +474,13 @@ float3 BH_Render(float3 pos, float3 vel)
         {
             dt = min(dt, max(abs(pos.y - _BlackHolePos.y) * 0.8, 0.3 * _DiskThickness * r1));
         }
+        
+        if (_Jet.x > 0)
+        {
+            float jy0 = abs(pos.y - _BlackHolePos.y);
+            float jw0 = _Jet.z * _Rs * sqrt(max(jy0, _Rs) / _Rs);
+            if (length((pos - _BlackHolePos).xz) < 3.0 * jw0) dt = min(dt, 0.5 * jw0);
+        }
 
         float3 prev_pos = pos;
 
@@ -484,6 +504,52 @@ float3 BH_Render(float3 pos, float3 vel)
         ray_len += dt;
         t_emit -= dt * (1.0 + _Rs / r1);
         #endif
+        
+        if (_Jet.x > 0)
+        {
+            float jy = abs(pos.y - _BlackHolePos.y);
+            float rho = length((pos - _BlackHolePos).xz);
+            float jw = _Jet.z * _Rs * sqrt(max(jy, _Rs) / _Rs);
+            float across = exp(-0.5 * rho * rho / (jw * jw));
+            float along = _Rs / max(jy, _Rs);
+            float ends = smoothstep(r_horizon, 2.0 * r_horizon, jy) * (1.0 - smoothstep(0.7, 1.0, jy / (_Jet.w * _Rs)));
+            float j = _Jet.x * across * along * ends / jw;
+            
+            float beta_j = _Jet.y;
+            float gamma_j = 1.0 / sqrt(1.0 - beta_j * beta_j);
+            
+            float cos_th = sign(pos.y - _BlackHolePos.y) * -vel.y;
+            float delta_j = 1.0 / (gamma_j * (1.0 - beta_j * cos_th));
+            float r_j = length(pos - _BlackHolePos);
+            float g_grav = sqrt(saturate(1.0 - _Rs / r_j));
+            
+            j *= pow(delta_j * g_grav * doppler, 2.7);
+            
+            float spacing = 4.0 * _Rs;
+            float phase = (jy - _Jet.y * t_emit) / spacing;
+            float pulse = pow(0.5 + 0.5 * cos(6.2831853 * phase), 4);
+            
+            j *= lerp(1.0, pulse / 0.273, _JetKnots);
+            
+            if (_JetTurbulence > 0 && across > 0.01)
+            {
+                float3 rel = pos - _BlackHolePos;
+                float tw = 0.5 * jy / _Rs;
+            
+                float s_tw, c_tw;
+                sincos(tw, s_tw, c_tw);
+                float2 rot = float2(rel.x * c_tw - rel.z * s_tw, rel.x * s_tw + rel.z * c_tw);
+            
+                float flow = jy - _Jet.y * t_emit;
+                float3 q = float3(rot.x / jw, flow / (3.0 * jw), rot.y / jw) * 2.0;
+                q.y += sign(rel.y) * 17.0;
+            
+                float jn = 0.5 + 0.5 * (gradient_noise(q) + 0.5 * gradient_noise(q * 2.0));
+                j *= lerp(1.0, saturate(jn) * 2.0, _JetTurbulence);
+            }
+            
+            jetLight += j * _JetColor.rgb * dt * (1.0 - diskAlpha);
+        }
 
         if (diskAlpha >= 0.95) 
         {
@@ -637,7 +703,7 @@ float3 BH_Render(float3 pos, float3 vel)
     bg *= blackbody(6500.0 * doppler) / blackbody(6500.0);
     float3 col = hit ? float3(0, 0, 0) : bg;
 
-    col = col * (1.0 - diskAlpha) + diskLight;
+    col = col * (1.0 - diskAlpha) + diskLight + jetLight;
 
     return col;
 }

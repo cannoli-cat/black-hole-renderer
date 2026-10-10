@@ -107,6 +107,34 @@ namespace CannoliCat.Space {
         [Range(0.05f, 1f)]
         public float hotSpotSize = 0.25f;
 
+        [Header("Jet")]
+        [Tooltip("Brightness of the relativistic jets along the spin axis, like M87's. 0 = off. The jet coming toward you is boosted and the one going away is dimmed by relativistic beaming.")]
+        [Range(0f, 5f)]
+        public float jetBrightness = 0f;
+
+        [Tooltip("Speed of the jet material, as a fraction of the speed of light. Faster jets are more one-sided, and their knots can appear to move faster than light.")]
+        [Range(0f, 0.99f)]
+        public float jetSpeed = 0.9f;
+
+        [Tooltip("Jet radius one Schwarzschild radius above the hole, as a multiple of the Schwarzschild radius. The jet widens like a parabola further out.")]
+        [Range(0.05f, 1f)]
+        public float jetWidth = 0.3f;
+
+        [Tooltip("How far the jet reaches, as a multiple of the Schwarzschild radius.")]
+        [Range(5f, 100f)]
+        public float jetLength = 40f;
+
+        [Tooltip("How strongly the jet breaks into bright knots that travel outward. 0 = smooth.")]
+        [Range(0f, 1f)]
+        public float jetKnots = 0.5f;
+
+        [Tooltip("How turbulent the jet is: wispy, twisting filaments that stream outward with the flow. 0 = smooth.")]
+        [Range(0f, 1f)]
+        public float jetTurbulence = 0.5f;
+
+        [Tooltip("Color of the jet's glow. Jets shine by synchrotron light, which is bluish white rather than a blackbody color.")]
+        public Color jetColor = new Color(0.7f, 0.8f, 1f);
+
         [Header("Color")]
         public Color diskColorTint = Color.white;
 
@@ -135,6 +163,13 @@ namespace CannoliCat.Space {
             hotSpotStrength = p.hotSpotStrength;
             hotSpotRadius = p.hotSpotRadius;
             hotSpotSize = p.hotSpotSize;
+            jetBrightness = p.jetBrightness;
+            jetSpeed = p.jetSpeed;
+            jetWidth = p.jetWidth;
+            jetLength = p.jetLength;
+            jetKnots = p.jetKnots;
+            jetTurbulence = p.jetTurbulence;
+            jetColor = p.jetColor;
             diskColorTint = p.diskColorTint;
         }
 
@@ -163,6 +198,13 @@ namespace CannoliCat.Space {
             p.hotSpotStrength = hotSpotStrength;
             p.hotSpotRadius = hotSpotRadius;
             p.hotSpotSize = hotSpotSize;
+            p.jetBrightness = jetBrightness;
+            p.jetSpeed = jetSpeed;
+            p.jetWidth = jetWidth;
+            p.jetLength = jetLength;
+            p.jetKnots = jetKnots;
+            p.jetTurbulence = jetTurbulence;
+            p.jetColor = jetColor;
             p.diskColorTint = diskColorTint;
         }
 
@@ -304,11 +346,16 @@ namespace CannoliCat.Space {
                 orbitalStretch = orbitalStretch,
                 edgeFraying = edgeFraying,
                 hotSpot = new Vector4(hotSpotStrength, hotSpotRadius, hotSpotSize, 0f),
+                jet = new Vector4(jetBrightness, jetSpeed, jetWidth, jetLength),
+                jetKnots = jetKnots,
+                jetTurbulence = jetTurbulence,
+                jetColor = jetColor,
                 plungingGas = plungingGas,
                 plungeGlow = plungeGlow,
-
+                
                 escapeRadius = Mathf.Max(80f,
-                    Vector3.Distance(camPos, bhPos) + diskOuterRadius * schwarzschildRadius * 2f),
+                    Vector3.Distance(camPos, bhPos) + schwarzschildRadius *
+                    Mathf.Max(diskOuterRadius * 2f, jetBrightness > 0f ? jetLength * 1.2f : 0f)),
 #if UNITY_WEBGL
                 skyIntensity = skyIntensity * webglSkyMultiplier,
 #else

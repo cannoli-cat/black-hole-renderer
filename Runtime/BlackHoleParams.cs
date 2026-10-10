@@ -7,6 +7,10 @@ namespace CannoliCat.Space {
         public Vector2 tanHalfFov;
         public float pixelAngle;
         public Vector4 hotSpot;
+        public Vector4 jet;
+        public float jetKnots;
+        public float jetTurbulence;
+        public Color jetColor;
         public float renderScale;
         public Vector3 blackHolePos;
         public Vector3 observerVelocity;
@@ -46,6 +50,10 @@ namespace CannoliCat.Space {
         private static readonly int OrbitalStretch = Shader.PropertyToID("_OrbitalStretch");
         private static readonly int EdgeFraying = Shader.PropertyToID("_EdgeFraying");
         private static readonly int HotSpot = Shader.PropertyToID("_HotSpot");
+        private static readonly int Jet = Shader.PropertyToID("_Jet");
+        private static readonly int JetKnots = Shader.PropertyToID("_JetKnots");
+        private static readonly int JetTurbulence = Shader.PropertyToID("_JetTurbulence");
+        private static readonly int JetColor = Shader.PropertyToID("_JetColor");
         private static readonly int PlungingGas = Shader.PropertyToID("_PlungingGas");
         private static readonly int PlungeGlow = Shader.PropertyToID("_PlungeGlow");
         private static readonly int EscapeRadius =Shader.PropertyToID("_EscapeRadius");
@@ -89,6 +97,10 @@ namespace CannoliCat.Space {
             m.SetFloat(OrbitalStretch, orbitalStretch);
             m.SetFloat(EdgeFraying, edgeFraying);
             m.SetVector(HotSpot, hotSpot);
+            m.SetVector(Jet, jet);
+            m.SetFloat(JetKnots, jetKnots);
+            m.SetFloat(JetTurbulence, jetTurbulence);
+            m.SetColor(JetColor, jetColor);
             m.SetFloat(PlungingGas, plungingGas);
             m.SetFloat(PlungeGlow, plungeGlow);
             m.SetFloat(EscapeRadius, escapeRadius);
@@ -128,6 +140,10 @@ namespace CannoliCat.Space {
             cmd.SetComputeFloatParam(cs, OrbitalStretch, orbitalStretch);
             cmd.SetComputeFloatParam(cs, EdgeFraying, edgeFraying);
             cmd.SetComputeVectorParam(cs, HotSpot, hotSpot);
+            cmd.SetComputeVectorParam(cs, Jet, jet);
+            cmd.SetComputeFloatParam(cs, JetKnots, jetKnots);
+            cmd.SetComputeFloatParam(cs, JetTurbulence, jetTurbulence);
+            cmd.SetComputeVectorParam(cs, JetColor, jetColor);
             cmd.SetComputeFloatParam(cs, PlungingGas, plungingGas);
             cmd.SetComputeFloatParam(cs, PlungeGlow, plungeGlow);
             cmd.SetComputeFloatParam(cs, EscapeRadius, escapeRadius);

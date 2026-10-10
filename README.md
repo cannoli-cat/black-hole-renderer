@@ -11,7 +11,7 @@ Requires **Unity 6** with **URP** (RenderGraph).
 In Unity, open **Window → Package Manager**, click **+ → Install package from git URL…**, and enter:
 
 ```
-https://github.com/cannoli-cat/black-hole-renderer.git#v2.6.0
+https://github.com/cannoli-cat/black-hole-renderer.git#v2.7.0
 ```
 
 ## Setup
@@ -55,6 +55,10 @@ To fall in, add **Black Hole Fall Camera** instead. It drops the camera from whe
 ## Hot spot
 
 Raise **Hot Spot Strength** to add a bright blob orbiting in the disk. Light from it reaches the camera along several paths that take different amounts of time, so you see it directly and then again as delayed echoes in the lensed image above the hole and in the photon ring. **Hot Spot Radius** sets its orbit (as a multiple of the innermost stable orbit) and **Hot Spot Size** its size.
+
+## Jets
+
+Raise **Jet Brightness** to add relativistic jets along the spin axis, like M87's. **Jet Speed** sets how close to the speed of light the material moves: faster jets look more one-sided, because the jet coming toward you is boosted and the other is dimmed. **Jet Knots** breaks the jet into bright blobs that travel outward; seen from close to the jet's axis they can appear to move faster than light. The jets are lensed by the black hole like everything else.
 
 ## Disk look
 

@@ -3,6 +3,11 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [2.7.0]
+
+### Added
+- Relativistic jets, off by default. Jet Brightness, Speed, Width, Length, Knots, Turbulence and Color add glowing jets along the spin axis. The jet coming toward you is boosted and the one going away is dimmed by relativistic beaming, and bright knots travelling outward can appear to move faster than light, an illusion caused by light travel time. Presets save and apply the jet settings, and the M87 preset now has its famous jet.
+
 ## [2.6.0]
 
 ### Added
