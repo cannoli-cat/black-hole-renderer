@@ -30,6 +30,7 @@ https://github.com/cannoli-cat/black-hole-renderer.git#v2.7.0
 1. Add **Black Hole Feature** to your URP renderer (Renderer asset → **Add Renderer Feature**), and assign the `BlackHole` shader and `BlackHole` compute shader from this package.
 2. Add the **Black Hole** component to a GameObject. Its position is the black hole's position.
 3. Use a **cubemap skybox** material in Lighting settings. It's what gets lensed. Without one, the background renders black.
+   For WebGL builds with an HDR sky (.exr or .hdr), override the sky texture's import settings for WebGL with **Format: RGBA Half**. On Automatic, Unity stores HDR textures in a compressed encoding there that comes out washed out and far too bright.
 
 Tune the radius, spin, disk size, temperature, disk exposure and sky intensity on the renderer feature.
 
